@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="ar" dir="rtl">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Motivity AI - Smart Coverage Engine</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+
+        :root{ --motivity-red:#e60012; --tech-blue:#38bdf8; --bg:#0d1117; }
+
+        *{box-sizing:border-box; font-family:'Cairo', sans-serif; margin:0; padding:0}
+
+        body{background:var(--bg); color:#fff; display:flex; flex-direction:column; height:100vh; overflow:hidden}
+
+        .top-bar { background:#1c2128; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--motivity-red)}
+
+        .wrapper{display:flex; flex:1; overflow:hidden}
+
+        .sidebar{width:350px; background:#161b22; padding:20px; overflow-y:auto; border-left:1px solid #333}
+
+        .box{background:#21262d; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #30363d}
+
+        label{font-size:11px; color:#8b949e; display:block; margin-top:8px}
+
+        input, select{width:100%; padding:10px; background:#0d1117; color:#fff; border:1px solid #30363d; border-radius:8px; margin-top:5px}
+
+        button{padding:12px; border:none; border-radius:8px; font-weight:700; cursor:pointer; width:100%; margin-top:10px}
+
+        .btn-primary{background:var(--motivity-red); color:#fff}
+
+        .btn-secondary{background:var(--tech-blue); color:#000}
+
+        .canvas-container{flex:1; background:#000; display:flex; align-items:center; justify-content:center; padding:40px}
+
+        canvas{background:#0a0a0a; border:1px solid #444}
+
+        #reportView{display:none; position:fixed; inset:0; background:#fff; z-index:9999; padding:30px; overflow-y:auto; color:#333}
+
+        .paper{max-width:850px; margin:auto; border:2px solid #eee; padding:30px}
+
+        .status-badge { padding:10px 20px; border-radius:50px; display:inline-block; font-weight:bold; margin-top:10px; }
+
+        .excellent { background: #d4edda; color: #155724; }
+
+        .warning { background: #fff3cd; color: #856404; }
+
+        .critical { background: #f8d7da; color: #721c24; }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+<div class="top-bar no-print">
+
+    <div style="font-weight:900; font-size:20px">MOTIVITY <span style="color:var(--motivity-red)">AI ANALYZER</span></div>
+
+    <button onclick="location.reload()" style="background:#444; width:auto; padding:5px 15px">🔄 تصفير</button>
+
+</div>
+
+
+
+<div class="wrapper no-print">
+
+    <div class="sidebar">
+
+        <div class="box">
+
+            <h3>📏 أبعاد المكان والارتفاع</h3>
+
+            <label>الطول (م)</label><input type="number" id="dim_l" value="20" oninput="draw()">
+
+            <label>العرض (م)</label><input type="number" id="dim_w" value="10" oninput="draw()">
+
+            <label>ارتفاع السقف (م)</label><input type="number" id="dim_h" value="3.5">
+
+        </div>
+
+
+
+        <div class="box">
+
+            <h3>⚙️ التوزيع الشبكي</h3>
+
+            <div style="display:flex; gap:5px">
+
+                <div><label>أعمدة</label><input type="number" id="grid_cols" value="4"></div>
+
+                <div><label>صفوف</label><input type="number" id="grid_rows" value="2"></div>
+
+            </div>
+
+            <button class="btn-secondary" onclick="runSmartEngine()">✨ اقتراح التوزيع الذكي</button>
+
+            <button class="btn-primary" onclick="generateLayout()">⚙️ تنفيذ الرسم والمزامنة</button>
+
+        </div>
+
+
+
+        <div class="box">
+
+            <label>الموديل</label>
+
+            <select id="spk_model">
+
+                <option value="CS606" data-watt="6">CS606 (Standard)</option>
+
+                <option value="CS612" data-watt="12">CS612 (Pro)</option>
+
+                <option value="CS620" data-watt="20">CS620 (High Power)</option>
+
+            </select>
+
+        </div>
+
+        
+
+        <button class="btn-primary" style="background:#238636" onclick="openReport()">📄 تحليل التغطية والتقرير</button>
+
+    </div>
+
+    <div class="canvas-container"><canvas id="mainCanvas"></canvas></div>
+
+</div>
+
+
+
+<div id="reportView">
+
+    <div class="paper">
+
+        <h1 style="color:var(--motivity-red)">MOTIVITY AUDIO - تقرير التحليل الذكي</h1>
+
+        <hr style="margin:20px 0">
+
+        
+
+        <div id="aiVerdict" style="padding:20px; border-radius:10px; margin-bottom:20px;">
+
+            <h3 id="verdictTitle">جارٍ تحليل البيانات...</h3>
+
+            <p id="verdictBody"></p>
+
+            <div id="verdictBadge" class="status-badge"></div>
+
+        </div>
+
+
+
+        <div style="background:#000; padding:10px; text-align:center"><img id="reportImg" style="max-width:100%"></div>
+
+        
+
+        <table style="width:100%; border-collapse:collapse; margin:20px 0" border="1">
+
+            <thead><tr style="background:#eee"><th>القطعة</th><th>الموديل</th><th>الكمية</th><th>إجمالي القدرة</th></tr></thead>
+
+            <tbody id="boqBody"></tbody>
+
+        </table>
+
+        
+
+        <button onclick="window.print()" class="btn-primary no-print">حفظ كـ PDF</button>
+
+        <button onclick="document.getElementById('reportView').style.display='none'" class="btn-primary no-print" style="background:#666">إغلاق</button>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+    const canvas = document.getElementById('mainCanvas');
+
+    const ctx = canvas.getContext('2d');
+
+    let speakers = [];
+
+
+
+    function runSmartEngine() {
+
+        const L = parseFloat(document.getElementById('dim_l').value);
+
+        const W = parseFloat(document.getElementById('dim_w').value);
+
+        const H = parseFloat(document.getElementById('dim_h').value);
+
+        const spacing = H * 1.5; // قطر التغطية لكل سماعة
+
+        document.getElementById('grid_cols').value = Math.ceil(L / spacing);
+
+        document.getElementById('grid_rows').value = Math.ceil(W / spacing);
+
+        generateLayout();
+
+    }
+
+
+
+    function generateLayout() {
+
+        const cols = parseInt(document.getElementById('grid_cols').value);
+
+        const rows = parseInt(document.getElementById('grid_rows').value);
+
+        speakers = [];
+
+        for(let r=0; r<rows; r++) {
+
+            for(let c=0; c<cols; c++) {
+
+                speakers.push({ rx: (c + 0.5) / cols, ry: (r + 0.5) / rows });
+
+            }
+
+        }
+
+        draw();
+
+    }
+
+
+
+    function draw() {
+
+        const container = canvas.parentElement;
+
+        const L = parseFloat(document.getElementById('dim_l').value) || 1;
+
+        const W = parseFloat(document.getElementById('dim_w').value) || 1;
+
+        const scale = Math.min((container.clientWidth-80)/L, (container.clientHeight-80)/W);
+
+        canvas.width = L * scale; canvas.height = W * scale;
+
+        ctx.fillStyle = "#0a0a0a"; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 3; ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+        speakers.forEach(s => {
+
+            const x = s.rx * canvas.width; const y = s.ry * canvas.height;
+
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.25)"; ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI*2); ctx.stroke();
+
+            ctx.fillStyle = "#e60012"; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+
+        });
+
+    }
+
+
+
+    function openReport() {
+
+        const L = parseFloat(document.getElementById('dim_l').value);
+
+        const W = parseFloat(document.getElementById('dim_w').value);
+
+        const H = parseFloat(document.getElementById('dim_h').value);
+
+        const area = L * W;
+
+        const modelEl = document.getElementById('spk_model');
+
+        const watt = parseFloat(modelEl.options[modelEl.selectedIndex].dataset.watt);
+
+        const totalW = watt * speakers.length;
+
+
+
+        // خوارزمية تحليل التغطية
+
+        const speakerCoverageRadius = (H * 1.5) / 2;
+
+        const totalEffectiveCoverage = speakers.length * (Math.PI * Math.pow(speakerCoverageRadius, 2)) * 0.8; // مع اعتبار تداخل 20%
+
+        const coverageRatio = (totalEffectiveCoverage / area);
+
+
+
+        let verdict = ""; let badgeClass = ""; let advice = "";
+
+        
+
+        if (coverageRatio >= 0.9) {
+
+            verdict = "تغطية صوتية مكتملة ومثالية";
+
+            badgeClass = "excellent";
+
+            advice = "النظام يغطي كامل المساحة بوضوح عالٍ. لا توجد مناطق ميتة (Dead Spots).";
+
+        } else if (coverageRatio >= 0.6) {
+
+            verdict = "تغطية متوسطة - تحتاج انتباه";
+
+            badgeClass = "warning";
+
+            advice = `النظام يغطي حوالي ${Math.round(coverageRatio*100)}% من المكان. قد توجد ضعف في مستويات الصوت عند الزوايا. يُنصح بإضافة صف سماعات آخر.`;
+
+        } else {
+
+            verdict = "تغطية غير كافية - حرجة";
+
+            badgeClass = "critical";
+
+            advice = "عدد السماعات قليل جداً بالنسبة للمساحة. الصوت لن يكون مسموعاً بشكل متوازن. يجب زيادة العدد فوراً.";
+
+        }
+
+
+
+        document.getElementById('verdictTitle').innerText = verdict;
+
+        document.getElementById('verdictBody').innerText = advice;
+
+        document.getElementById('verdictBadge').innerText = `نسبة التغطية المحسوبة: ${Math.round(coverageRatio*100)}%`;
+
+        document.getElementById('verdictBadge').className = "status-badge " + badgeClass;
+
+        document.getElementById('aiVerdict').style.background = badgeClass === 'excellent' ? '#d4edda' : badgeClass === 'warning' ? '#fff3cd' : '#f8d7da';
+
+
+
+        let amp = totalW <= 120 ? "MA-120-MP5P" : totalW <= 240 ? "MA-240-MP5P" : totalW <= 360 ? "MA-360-MP5P" : "MA-650-MP5P";
+
+        
+
+        document.getElementById('boqBody').innerHTML = `
+
+            <tr><td>سماعة سقف</td><td>Motivity ${modelEl.value}</td><td>${speakers.length}</td><td>${totalW}W</td></tr>
+
+            <tr><td>مضخم صوت</td><td>Motivity ${amp}</td><td>1</td><td>${amp} (Auto-Selected)</td></tr>
+
+        `;
+
+
+
+        setTimeout(() => { document.getElementById('reportImg').src = canvas.toDataURL(); }, 200);
+
+        document.getElementById('reportView').style.display = 'block';
+
+    }
+
+
+
+    window.onload = draw;
+
+</script>
+
+</body>
+
+</html>

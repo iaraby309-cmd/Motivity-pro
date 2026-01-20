@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motivity AI - Universal Designer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root{ --motivity-red:#e60012; --tech-blue:#38bdf8; --bg:#0d1117; }
+        *{box-sizing:border-box; font-family:'Cairo', sans-serif; margin:0; padding:0}
+        body{background:var(--bg); color:#fff; display:flex; flex-direction:column; min-height:100vh;}
+        
+        /* تصميم متجاوب للهاتف والكمبيوتر */
+        .wrapper { display: flex; flex: 1; flex-direction: row; overflow: hidden; }
+        @media (max-width: 900px) { .wrapper { flex-direction: column; overflow: auto; } }
+
+        .sidebar { width: 380px; background: #161b22; padding: 20px; border-left: 4px solid var(--motivity-red); overflow-y: auto; flex-shrink: 0; }
+        @media (max-width: 900px) { .sidebar { width: 100%; border-left: none; border-bottom: 4px solid var(--motivity-red); } }
+
+        .canvas-container { flex: 1; background: #000; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; padding: 10px; }
+        canvas { background: #050505; border: 1px solid #222; max-width: 100%; height: auto; }
+
+        .box { background: #21262d; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #30363d; }
+        input, select { width: 100%; padding: 12px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 8px; margin-top: 5px; }
+        
+        button { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-smart { background: var(--motivity-red); color: #fff; }
+        .btn-report { background: var(--tech-blue); color: #000; }
+
+        /* نافذة التقرير */
+        #reportModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; padding: 15px; overflow-y: auto; }
+        .report-paper { background: #fff; color: #333; max-width: 850px; margin: auto; padding: 30px; border-radius: 5px; }
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        .report-table th, .report-table td { border: 1px solid #ddd; padding: 10px; text-align: right; }
+        
+        @media print { .no-print { display: none; } #reportModal { position: absolute; padding: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="sidebar">
+        <h2 style="color:var(--motivity-red); margin-bottom:15px; text-align:center;">MOTIVITY <span>AI</span></h2>
+        
+        <div class="box">
+            <h3>📐 أبعاد القاعة</h3>
+            <label>الطول (م)</label><input type="number" id="dim_l" value="25" oninput="draw()">
+            <label>العرض (م)</label><input type="number" id="dim_w" value="15" oninput="draw()">
+            <label>الارتفاع (م)</label><input type="number" id="dim_h" value="4" oninput="draw()">
+        </div>
+
+        <div class="box">
+            <h3>🎤 توزيع المؤتمرات</h3>
+            <label>رؤساء الجلسة (Chairman)</label><input type="number" id="count_chair" value="1">
+            <label>المندوبين (Delegate)</label><input type="number" id="count_del" value="20">
+            <button class="btn-smart" onclick="runSmartEngine()">✨ التوزيع واختيار الأجهزة</button>
+        </div>
+
+        <button class="btn-report" onclick="generateReport()">📄 إصدار التقرير النهائي</button>
+    </div>
+
+    <div class="canvas-container">
+        <div style="color:var(--tech-blue); margin-bottom:5px; font-size:12px;">مخطط التوزيع الهندسي - Motivity Professional Layout</div>
+        <canvas id="mainCanvas"></canvas>
+    </div>
+</div>
+
+<div id="reportModal">
+    <div class="report-paper">
+        <h2 style="color:var(--motivity-red); border-bottom: 2px solid #333;">التقرير الفني للمشروع - MOTIVITY</h2>
+        
+        <div id="reportMeta" style="margin: 15px 0;"></div>
+        
+        <div style="background:#000; padding:10px; text-align:center; border-radius:5px;">
+            <img id="reportCanvasImg" style="max-width:100%; border:1px solid #444;">
+        </div>
+
+        <table class="report-table">
+            <thead>
+                <tr style="background:#f4f4f4;"><th>الفئة</th><th>الموديل المقترح</th><th>الكمية</th><th>ملاحظات</th></tr>
+            </thead>
+            <tbody id="boqBody"></tbody>
+        </table>
+        
+        <div class="no-print" style="margin-top:20px; display:flex; gap:10px;">
+            <button onclick="window.print()" class="btn-smart">طباعة التقرير / حفظ PDF</button>
+            <button onclick="document.getElementById('reportModal').style.display='none'" style="background:#eee;">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    let speakers = []; let mics = []; let sysData = {};
+
+    function draw() {
+        const parent = canvas.parentElement;
+        canvas.width = Math.min(parent.clientWidth - 20, 800);
+        canvas.height = canvas.width * 0.6;
+
+        const L_m = parseFloat(document.getElementById('dim_l').value) || 1;
+        const W_m = parseFloat(document.getElementById('dim_w').value) || 1;
+        const H_m = parseFloat(document.getElementById('dim_h').value) || 1;
+
+        const scale = Math.min(canvas.width / (L_m + 5), canvas.height / (W_m + 5));
+        const L = L_m * scale; const W = W_m * scale;
+        const x0 = (canvas.width - L) / 2; const y0 = (canvas.height - W) / 2;
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(x0, y0, L, W);
+
+        // كتابة الأبعاد
+        ctx.fillStyle = "#38bdf8"; ctx.font = "12px Cairo";
+        ctx.fillText(`الطول: ${L_m}م`, x0 + L/2 - 20, y0 - 10);
+        ctx.fillText(`الارتفاع: ${H_m}م`, x0 + L - 60, y0 + W + 20);
+        ctx.save(); ctx.translate(x0 - 10, y0 + W/2); ctx.rotate(-Math.PI/2);
+        ctx.fillText(`العرض: ${W_m}م`, -20, 0); ctx.restore();
+
+        speakers.forEach(s => {
+            ctx.fillStyle = "#e60012"; ctx.beginPath(); ctx.arc(x0+s.rx*L, y0+s.ry*W, 7, 0, Math.PI*2); ctx.fill();
+        });
+        mics.forEach(m => {
+            ctx.fillStyle = m.type === 'chair' ? "#e60012" : "#38bdf8";
+            ctx.beginPath(); ctx.arc(x0+m.rx*L, y0+m.ry*W, 5, 0, Math.PI*2); ctx.fill();
+        });
+    }
+
+    function runSmartEngine() {
+        const L_m = parseFloat(document.getElementById('dim_l').value);
+        const chairs = parseInt(document.getElementById('count_chair').value);
+        const dels = parseInt(document.getElementById('count_del').value);
+
+        // منطق الأمبلفير MA و D
+        let spkCount = Math.max(4, Math.ceil(L_m / 5) * 2);
+        speakers = [];
+        for(let i=0; i<spkCount/2; i++) {
+            const rx = 0.1 + (i * 0.8 / (spkCount/2 - 1 || 1));
+            speakers.push({rx, ry:0}, {rx, ry:1});
+        }
+
+        if(L_m > 30 || spkCount > 12) {
+            sysData.amp = "Motivity D-Series Digital Amplifier";
+            sysData.note = "قدرة عالية للمساحات الكبيرة";
+        } else {
+            sysData.amp = "Motivity MA-Series Professional Amplifier";
+            sysData.note = "توزيع مثالي للقاعات المتوسطة";
+        }
+
+        mics = [];
+        for(let i=0; i<(chairs+dels); i++) {
+            const rx = 0.1 + (i * 0.8 / (chairs + dels - 1 || 1));
+            mics.push({rx, ry: 0.1, type: i < chairs ? 'chair' : 'del'});
+        }
+        sysData.host = (chairs+dels) > 20 ? "Motivity G-S40 Central Unit" : "Motivity MT-2000S Control";
+        draw();
+    }
+
+    function generateReport() {
+        if(speakers.length === 0) runSmartEngine();
+        document.getElementById('reportCanvasImg').src = canvas.toDataURL();
+        document.getElementById('reportMeta').innerHTML = `
+            <p><b>الأبعاد:</b> ${document.getElementById('dim_l').value}م × ${document.getElementById('dim_w').value}م (ارتفاع ${document.getElementById('dim_h').value}م)</p>
+            <p><b>التجهيزات:</b> ${mics.length} مايكروفون | ${speakers.length} سماعة</p>
+        `;
+        document.getElementById('boqBody').innerHTML = `
+            <tr><td>مضخم الصوت</td><td>${sysData.amp}</td><td>1</td><td>${sysData.note}</td></tr>
+            <tr><td>وحدة التحكم</td><td>${sysData.host}</td><td>1</td><td>معالجة رقمية كاملة</td></tr>
+            <tr><td>مايك رئيس</td><td>Motivity Chairman Unit</td><td>${document.getElementById('count_chair').value}</td><td>أولوية التحدث</td></tr>
+            <tr><td>مايك مندوب</td><td>Motivity Delegate Unit</td><td>${document.getElementById('count_del').value}</td><td>صوت عالي النقاء</td></tr>
+            <tr><td>سماعات</td><td>Motivity CS-08 Column</td><td>${speakers.length}</td><td>توزيع جداري متوازن</td></tr>
+        `;
+        document.getElementById('reportModal').style.display = 'block';
+    }
+
+    window.onload = draw;
+    window.onresize = draw;
+</script>
+</body>
+</html>

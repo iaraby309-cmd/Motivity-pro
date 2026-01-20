@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Motivity AI - Final Outdoor Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root{ --motivity-red:#e60012; --tech-blue:#38bdf8; --bg:#0d1117; }
+        *{box-sizing:border-box; font-family:'Cairo', sans-serif; margin:0; padding:0}
+        body{background:var(--bg); color:#fff; display:flex; height:100vh; overflow:hidden}
+        .sidebar{width:450px; background:#161b22; padding:20px; overflow-y:auto; border-left:4px solid var(--motivity-red); flex-shrink:0}
+        .box{background:#21262d; padding:15px; border-radius:10px; margin-bottom:12px; border:1px solid #30363d}
+        h3{font-size:14px; color:var(--tech-blue); border-bottom:1px solid #444; padding-bottom:5px; margin-bottom:10px}
+        label{font-size:11px; color:#8b949e; display:block; margin-top:8px}
+        input, select{width:100%; padding:10px; background:#0d1117; color:#fff; border:1px solid #444; border-radius:6px; margin-top:4px}
+        .main-view{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000}
+        canvas{background:#0a0a0a; border:1px solid #333; border-radius:15px; width:95%; height:75vh}
+        .btn-smart{background:var(--tech-blue); color:#000; width:100%; padding:12px; border:none; border-radius:6px; font-weight:900; cursor:pointer; margin:10px 0}
+        .btn-report{background:var(--motivity-red); color:#fff; width:100%; padding:15px; border:none; border-radius:8px; font-weight:900; cursor:pointer}
+        
+        /* تصميم التقرير */
+        #reportPage{display:none; position:fixed; inset:0; background:#fff; z-index:9999; color:#333; overflow-y:auto; padding:40px}
+        .report-content{max-width:1100px; margin:auto; padding:30px; border:1px solid #ddd; background:#fff}
+        .no-print-btn{padding:10px 25px; border-radius:5px; cursor:pointer; font-weight:bold; border:none; margin-left:10px}
+        table{width:100%; border-collapse:collapse; margin:20px 0}
+        th, td{border:1px solid #ddd; padding:12px; text-align:right}
+        @media print { .no-print { display: none !important; } #reportPage { position: static; display: block; } }
+    </style>
+</head>
+<body>
+
+<div class="sidebar no-print" id="ui-sidebar">
+    <h2 style="color:var(--motivity-red); text-align:center; margin-bottom:15px">محرك MOTIVITY الهندسي</h2>
+    
+    <div class="box">
+        <h3>📍 توصيف المساحة</h3>
+        <label>نوع المكان</label>
+        <select id="area_type">
+            <option value="parking">مواقف سيارات ومداخل</option>
+            <option value="path">ممرات ومظلات</option>
+        </select>
+        <label>طول المساحة (متر)</label>
+        <input type="number" id="area_len" value="100" oninput="draw()">
+        <label>طريقة التثبيت</label>
+        <select id="mount" onchange="draw()">
+            <option value="wall">تثبيت حائطي</option>
+            <option value="pole">أعمدة إنارة/صوت</option>
+        </select>
+    </div>
+
+    <div class="box">
+        <h3>🔊 الإدخال اليدوي</h3>
+        <label>الموديل</label>
+        <select id="model">
+            <option value="SM-8T">SM-8T (80W)</option>
+            <option value="SM-5T">SM-5T (40W)</option>
+        </select>
+        <label>العدد</label>
+        <input type="number" id="qty" value="10" oninput="draw()">
+    </div>
+
+    <button class="btn-smart" onclick="applySmart()">✨ اقتراح ذكي</button>
+    <button class="btn-report" onclick="openReport()">📄 إصدار التقرير والتحليل</button>
+</div>
+
+<div class="main-view no-print">
+    <canvas id="outdoorCanvas"></canvas>
+</div>
+
+<div id="reportPage">
+    <div class="report-content">
+        <div class="no-print" style="margin-bottom:25px">
+            <button onclick="closeReport()" class="no-print-btn" style="background:#666; color:#fff">🔙 رجوع للتعديل</button>
+            <button onclick="window.print()" class="no-print-btn" style="background:var(--motivity-red); color:#fff">💾 حفظ PDF</button>
+        </div>
+        <h1 style="color:var(--motivity-red)">تقرير التحليل الفني للمساحات المفتوحة</h1>
+        <div id="smartReasoning" style="background:#f4f7f6; padding:25px; border-right:6px solid var(--motivity-red); margin:20px 0; font-size:16px; line-height:1.7"></div>
+        <table id="resTable"></table>
+        <h3>المخطط الهندسي للتوزيع:</h3>
+        <img id="resImg" style="width:100%; border:2px solid #eee; margin-top:10px">
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('outdoorCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function draw() {
+        const mnt = document.getElementById('mount').value;
+        const q = parseInt(document.getElementById('qty').value) || 1;
+        canvas.width = 1200; canvas.height = 700;
+        
+        ctx.fillStyle = "#0a0a0a"; ctx.fillRect(0,0,1200,700);
+        
+        // رسم خط الأرضية
+        ctx.strokeStyle = "#333"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(50, 600); ctx.lineTo(1150, 600); ctx.stroke();
+
+        const spacing = 1000 / q;
+        for(let i=0; i<q; i++) {
+            let x = 100 + (i * spacing);
+            
+            if(mnt === "wall") {
+                // رسم الحائط بجودة أفضل
+                ctx.fillStyle = "#1c1c1c"; ctx.fillRect(x-15, 100, 30, 500);
+                ctx.strokeStyle = "#444"; ctx.strokeRect(x-15, 100, 30, 500);
+                // السماعة SM
+                ctx.fillStyle = "#e60012"; ctx.fillRect(x-20, 200, 40, 55);
+                ctx.fillStyle = "#fff"; ctx.font = "bold 10px Cairo"; ctx.fillText("SM", x-10, 235);
+            } else {
+                // رسم الأعمدة
+                ctx.fillStyle = "#555"; ctx.fillRect(x-3, 100, 6, 500);
+                ctx.fillStyle = "#222"; ctx.fillRect(x-15, 590, 30, 10);
+                // السماعة دائرية للعمود
+                ctx.fillStyle = "#38bdf8"; ctx.beginPath(); ctx.arc(x, 200, 20, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = "#fff"; ctx.stroke();
+            }
+        }
+    }
+
+    function applySmart() {
+        const type = document.getElementById('area_type').value;
+        if(type === "parking") {
+            document.getElementById('model').value = "SM-8T";
+            document.getElementById('qty').value = 12;
+        } else {
+            document.getElementById('model').value = "SM-5T";
+            document.getElementById('qty').value = 8;
+        }
+        draw();
+    }
+
+    function openReport() {
+        const typeTxt = document.getElementById('area_type').options[document.getElementById('area_type').selectedIndex].text;
+        const mod = document.getElementById('model').value;
+        const q = document.getElementById('qty').value;
+        const amp = (mod === "SM-8T") ? "MA-360P5P" : "MA-240P5P";
+
+        // التحليل والتعليل
+        let reason = `<h3>🛠️ التحليل والتعليل الذكي:</h3>`;
+        reason += `<p>• <strong>المكان:</strong> تم تحليل مساحة (${typeTxt}) بطول ${document.getElementById('area_len').value} متر.</p>`;
+        reason += `<p>• <strong>التعليل الهندسي:</strong> اختيار <strong>${mod}</strong> يضمن تغطية صوتية متينة بفضل تصميمها المقاوم للعوامل الجوية وحساسيتها العالية (${mod === 'SM-8T' ? '89dB' : '87dB'}).</p>`;
+        reason += `<p>• <strong>نظام الطاقة:</strong> تم تخصيص مكبر <strong>${amp}</strong> لإدارة الحمل الكلي عبر 5 مناطق مستقلة.</p>`;
+        
+        document.getElementById('smartReasoning').innerHTML = reason;
+
+        // الجدول
+        let table = `<tr><th>المواصفة</th><th>التفاصيل</th></tr>
+                    <tr><td>نوع المساحة</td><td>${typeTxt}</td></tr>
+                    <tr><td>موديل السماعة</td><td>${mod}</td></tr>
+                    <tr><td>العدد الكلي</td><td>${q}</td></tr>
+                    <tr><td>المكبر المقترح</td><td>${amp}</td></tr>`;
+        
+        document.getElementById('resTable').innerHTML = table;
+        document.getElementById('resImg').src = canvas.toDataURL();
+        
+        document.getElementById('reportPage').style.display = 'block';
+        document.getElementById('ui-sidebar').style.display = 'none';
+    }
+
+    function closeReport() {
+        document.getElementById('reportPage').style.display = 'none';
+        document.getElementById('ui-sidebar').style.display = 'block';
+    }
+
+    window.onload = draw;
+</script>
+</body>
+</html>
