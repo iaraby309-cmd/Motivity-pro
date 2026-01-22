@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>Motivity AI Pro - Enterprise Audio Designer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --motivity-red: #e60012; --dark-bg: #0d1117; --panel-bg: #161b22; --accent: #38bdf8; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--dark-bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* UI Components */
+        .header { background: #1c2128; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--motivity-red); }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 380px; background: var(--panel-bg); padding: 15px; overflow-y: auto; border-right: 1px solid #30363d; }
+        
+        .control-box { background: #1c2128; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #30363d; }
+        label { display: block; font-size: 11px; margin: 8px 0 4px; color: #8b949e; text-transform: uppercase; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 6px; margin-bottom: 5px; }
+        
+        .btn { cursor: pointer; border: none; border-radius: 6px; padding: 12px; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.3s; }
+        .btn-primary { background: var(--motivity-red); color: white; }
+        .btn-accent { background: var(--accent); color: #000; }
+        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        /* Canvas */
+        .canvas-area { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1f26 0%, #0d1117 100%); }
+        canvas { background: #050505; border: 1px solid #444; box-shadow: 0 0 40px rgba(0,0,0,0.5); cursor: move; }
+
+        /* Report Styling */
+        #reportOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; padding:20px; overflow-y:auto; }
+        .paper { background:#fff; color:#333; max-width:1000px; margin:auto; padding:40px; border-radius:8px; box-shadow: 0 0 50px rgba(0,0,0,0.8); text-align: left; }
+        .report-header { display: flex; justify-content: space-between; border-bottom: 4px solid var(--motivity-red); padding-bottom: 15px; margin-bottom: 30px; }
+        
+        table { width:100%; border-collapse:collapse; margin: 25px 0; }
+        th { background: #f4f4f4; text-align: left; padding: 12px; border: 1px solid #ddd; font-weight: 800; }
+        td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        
+        .tech-note-box { padding: 20px; background: #f0faff; border-left: 6px solid var(--accent); border-radius: 4px; margin-top: 20px; }
+
+        @media print {
+            .no-print { display: none !important; }
+            #reportOverlay { position: static; background: white; padding: 0; }
+            .paper { box-shadow: none; border: none; width: 100%; padding: 0; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header no-print">
+    <div style="font-weight:900; font-size:24px; letter-spacing: 1px;">MOTIVITY <span style="color:var(--motivity-red)">AI ANALYZER</span></div>
+    <div style="display:flex; gap:20px; align-items: center;">
+        <div style="font-size: 13px; color: #8b949e;">TOTAL LOAD: <span id="topWatt" style="color:var(--accent); font-weight:bold;">0</span> W</div>
+        <button class="btn btn-primary" style="margin:0; padding: 5px 15px;" onclick="location.reload()">🔄 RESET</button>
+    </div>
+</div>
+
+<div class="main-container no-print">
+    <div class="sidebar">
+        <div class="control-box">
+            <h3>📂 PROJECT INFO</h3>
+            <label>Project Name</label>
+            <input type="text" id="projName" value="Grand Plaza Hotel - Ballroom">
+            <label>Facility Type</label>
+            <select id="projectType">
+                <option value="hotel">Hotels (BGM & Paging)</option>
+                <option value="hospital">Hospitals (Clear Announcements)</option>
+                <option value="hall" selected>Halls (High SPL Performance)</option>
+            </select>
+            <div style="display:flex; gap:10px">
+                <div><label>Length (m)</label><input type="number" id="dimL" value="25" oninput="initSystem()"></div>
+                <div><label>Width (m)</label><input type="number" id="dimW" value="15" oninput="initSystem()"></div>
+            </div>
+            <label>Ceiling Height (m)</label>
+            <input type="number" id="dimH" value="4" step="0.1" oninput="calculatePhysics()">
+        </div>
+
+        <div class="control-box">
+            <h3>⚙️ TECHNICAL SPECS</h3>
+            <label>Speaker Model</label>
+            <select id="modelSelect" onchange="calculatePhysics()">
+                <option value="CS606" data-full="6" data-half="3" data-low="1.5">CS606 (Max 6W)</option>
+                <option value="CS612" data-full="12" data-half="6" data-low="3">CS612 (Max 12W)</option>
+                <option value="CS620" data-full="20" data-half="10" data-low="5">CS620 (Max 20W)</option>
+            </select>
+            <label>Wattage Tap Setting</label>
+            <select id="tapSelect" onchange="calculatePhysics()">
+                <option value="full">Full Power (100%)</option>
+                <option value="half" selected>Half Power (50%)</option>
+                <option value="low">Low Power (25%)</option>
+            </select>
+            <button class="btn btn-accent" onclick="smartDistribute()">✨ SMART AUTO-DISTRIBUTE</button>
+            <button class="btn btn-primary" onclick="generateFullReport()">📄 GENERATE TECH REPORT</button>
+        </div>
+        <p style="font-size:10px; color:#666; text-align:center;">* Drag speakers manually to adjust positions</p>
+    </div>
+
+    <div class="canvas-area">
+        <canvas id="audioCanvas"></canvas>
+    </div>
+</div>
+
+<div id="reportOverlay">
+    <div class="paper">
+        <div class="report-header">
+            <div>
+                <h1 style="color:var(--motivity-red); margin:0">Acoustic Design Report</h1>
+                <p>Generated by Motivity AI Spatial Engine</p>
+            </div>
+            <div style="text-align:right">
+                <p id="repDate"></p>
+                <p><b>Ref:</b> MOT-ENG-2026</p>
+            </div>
+        </div>
+
+        <h3 style="border-left: 5px solid var(--motivity-red); padding-left:10px; margin-bottom:15px;">1. FLOOR PLAN (Acoustic Distribution)</h3>
+        <div style="text-align:center; border:1px solid #ddd; padding:10px; background:#f9f9f9">
+            <img id="mapImg" style="max-width:100%;">
+        </div>
+
+        <h3 style="border-left: 5px solid var(--motivity-red); padding-left:10px; margin: 25px 0 15px;">2. BILL OF QUANTITIES & LOAD ANALYSIS</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Technical Description</th>
+                    <th>Qty</th>
+                    <th>Total/Setting</th>
+                </tr>
+            </thead>
+            <tbody id="boqTable"></tbody>
+        </table>
+
+        <div class="tech-note-box" id="repNotes"></div>
+
+        <div class="no-print" style="margin-top:30px; display:flex; gap:10px">
+            <button class="btn btn-primary" style="width:200px" onclick="window.print()">Save as PDF</button>
+            <button class="btn btn-accent" style="width:100px" onclick="document.getElementById('reportOverlay').style.display='none'">Edit</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('audioCanvas');
+    const ctx = canvas.getContext('2d');
+    let speakers = [];
+    let isDragging = false;
+    let selectedSpeaker = null;
+
+    function initSystem() {
+        const L = parseFloat(document.getElementById('dimL').value);
+        const W = parseFloat(document.getElementById('dimW').value);
+        const container = canvas.parentElement;
+        const scale = Math.min((container.clientWidth - 60) / L, (container.clientHeight - 60) / W);
+        canvas.width = L * scale; canvas.height = W * scale;
+        draw();
+    }
+
+    function smartDistribute() {
+        const L = parseFloat(document.getElementById('dimL').value);
+        const W = parseFloat(document.getElementById('dimW').value);
+        const H = parseFloat(document.getElementById('dimH').value);
+        const spacing = (H - 1.5) * 1.8;
+        const cols = Math.ceil(L / spacing);
+        const rows = Math.ceil(W / spacing);
+        speakers = [];
+        for(let r=0; r<rows; r++) {
+            for(let c=0; c<cols; c++) {
+                speakers.push({ rx: (c + 0.5) / cols, ry: (r + 0.5) / rows });
+            }
+        }
+        calculatePhysics();
+    }
+
+    function calculatePhysics() {
+        const model = document.getElementById('modelSelect');
+        const tap = document.getElementById('tapSelect').value;
+        const opt = model.selectedOptions[0];
+        let wattPerSpk = parseFloat(opt.dataset[tap]);
+        document.getElementById('topWatt').innerText = (wattPerSpk * speakers.length).toFixed(1);
+        draw();
+    }
+
+    function draw() {
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const scale = canvas.width / parseFloat(document.getElementById('dimL').value);
+        const radius = (parseFloat(document.getElementById('dimH').value) - 1.5) * 1.5 * scale;
+
+        speakers.forEach(s => {
+            const x = s.rx * canvas.width;
+            const y = s.ry * canvas.height;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI*2);
+            ctx.fillStyle = "rgba(56, 189, 248, 0.12)";
+            ctx.fill();
+            ctx.fillStyle = "var(--motivity-red)";
+            ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = "#fff"; ctx.stroke();
+        });
+    }
+
+    canvas.onmousedown = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
+        speakers.forEach(s => {
+            if (Math.hypot(mx - s.rx*canvas.width, my - s.ry*canvas.height) < 15) {
+                isDragging = true; selectedSpeaker = s;
+            }
+        });
+    };
+    canvas.onmousemove = (e) => {
+        if (isDragging) {
+            const rect = canvas.getBoundingClientRect();
+            selectedSpeaker.rx = (e.clientX - rect.left) / canvas.width;
+            selectedSpeaker.ry = (e.clientY - rect.top) / canvas.height;
+            draw();
+        }
+    };
+    canvas.onmouseup = () => { isDragging = false; calculatePhysics(); };
+
+    function generateFullReport() {
+        const tap = document.getElementById('tapSelect').value;
+        const watt = parseFloat(document.getElementById('modelSelect').selectedOptions[0].dataset[tap]);
+        const totalWatt = watt * speakers.length;
+        const type = document.getElementById('projectType').value;
+        
+        let ampQty = 1;
+        let ampModel = "MA-120-MP5P";
+        if(totalWatt > 100 && totalWatt <= 220) ampModel = "MA-240-MP5P";
+        else if(totalWatt > 220) {
+            ampModel = "MA-240-MP5P";
+            ampQty = Math.ceil(totalWatt / 210);
+        }
+
+        let typeAdvice = "";
+        if(type === 'hotel') typeAdvice = "Optimized for seamless background music (BGM) in corridors while maintaining emergency paging clarity.";
+        else if(type === 'hospital') typeAdvice = "Denser distribution to ensure clear clinical paging across all departments.";
+        else typeAdvice = "High-output SPL configuration to ensure sound pressure during large gatherings and seminars.";
+
+        document.getElementById('repDate').innerText = "Report Date: " + new Date().toLocaleDateString('en-US');
+        document.getElementById('mapImg').src = canvas.toDataURL();
+        
+        document.getElementById('boqTable').innerHTML = `
+            <tr><td>Ceiling Speaker</td><td>Motivity ${document.getElementById('modelSelect').value}</td><td>${speakers.length}</td><td>Setting: ${watt}W</td></tr>
+            <tr><td>Mixer Amplifier</td><td>Motivity ${ampModel}</td><td>${ampQty}</td><td>Load Balanced</td></tr>
+            <tr><td>Speaker Cable</td><td>Twin Core 2*1.5mm Fire Rated</td><td>${Math.round(speakers.length * 12)} m</td><td>Estimated</td></tr>
+        `;
+
+        document.getElementById('repNotes').innerHTML = `
+            <strong>📌 ENGINEERING NOTES:</strong><br>
+            • Facility Type: <b>${document.getElementById('projectType').selectedOptions[0].innerText}</b>.<br>
+            • ${typeAdvice}<br>
+            • CRITICAL: Ensure each speaker transformer tap is set to <b>${watt}W</b> before ceiling closure.<br>
+            • A safety headroom of 15% has been maintained to protect amplifiers from peak signal clipping.
+        `;
+
+        document.getElementById('reportOverlay').style.display = 'block';
+    }
+
+    window.onload = () => { initSystem(); smartDistribute(); };
+</script>
+</body>
+</html>

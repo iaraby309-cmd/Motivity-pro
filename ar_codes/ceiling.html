@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Motivity AI Pro - Enterprise Audio Designer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --motivity-red: #e60012; --dark-bg: #0d1117; --panel-bg: #161b22; --accent: #38bdf8; }
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--dark-bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* UI Components */
+        .header { background: #1c2128; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--motivity-red); }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 380px; background: var(--panel-bg); padding: 15px; overflow-y: auto; border-left: 1px solid #30363d; }
+        
+        .control-box { background: #1c2128; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #30363d; }
+        label { display: block; font-size: 11px; margin: 8px 0 4px; color: #8b949e; text-transform: uppercase; }
+        input, select { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 6px; margin-bottom: 5px; }
+        
+        .btn { cursor: pointer; border: none; border-radius: 6px; padding: 12px; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.3s; }
+        .btn-primary { background: var(--motivity-red); color: white; }
+        .btn-accent { background: var(--accent); color: #000; }
+        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        /* Canvas */
+        .canvas-area { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1f26 0%, #0d1117 100%); }
+        canvas { background: #050505; border: 1px solid #444; box-shadow: 0 0 40px rgba(0,0,0,0.5); cursor: move; }
+
+        /* Report Styling */
+        #reportOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; padding:20px; overflow-y:auto; }
+        .paper { background:#fff; color:#333; max-width:1000px; margin:auto; padding:40px; border-radius:8px; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .report-header { display: flex; justify-content: space-between; border-bottom: 4px solid var(--motivity-red); padding-bottom: 15px; margin-bottom: 30px; }
+        
+        table { width:100%; border-collapse:collapse; margin: 25px 0; }
+        th { background: #f4f4f4; text-align: right; padding: 12px; border: 1px solid #ddd; font-weight: 800; }
+        td { padding: 12px; border: 1px solid #ddd; text-align: right; }
+        
+        .tech-note-box { padding: 20px; background: #f0faff; border-right: 6px solid var(--accent); border-radius: 4px; margin-top: 20px; }
+
+        @media print {
+            .no-print { display: none !important; }
+            #reportOverlay { position: static; background: white; padding: 0; }
+            .paper { box-shadow: none; border: none; width: 100%; padding: 0; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header no-print">
+    <div style="font-weight:900; font-size:24px; letter-spacing: 1px;">MOTIVITY <span style="color:var(--motivity-red)">AI ANALYZER</span></div>
+    <div style="display:flex; gap:20px; align-items: center;">
+        <div style="font-size: 13px; color: #8b949e;">إجمالي القدرة: <span id="topWatt" style="color:var(--accent); font-weight:bold;">0</span> W</div>
+        <button class="btn btn-primary" style="margin:0; padding: 5px 15px;" onclick="location.reload()">🔄 تصفير</button>
+    </div>
+</div>
+
+<div class="main-container no-print">
+    <div class="sidebar">
+        <div class="control-box">
+            <h3>📂 معلومات المشروع</h3>
+            <label>اسم المنشأة</label>
+            <input type="text" id="projName" value="فندق الماسة - القاعة الكبرى">
+            <label>نوع النشاط</label>
+            <select id="projectType">
+                <option value="hotel">فنادق (موسيقى هادئة ونداء)</option>
+                <option value="hospital">مستشفيات (وضوح النداء العام)</option>
+                <option value="hall" selected>قاعات (قوة SPL عالية)</option>
+            </select>
+            <div style="display:flex; gap:10px">
+                <div><label>الطول (م)</label><input type="number" id="dimL" value="25" oninput="initSystem()"></div>
+                <div><label>العرض (م)</label><input type="number" id="dimW" value="15" oninput="initSystem()"></div>
+            </div>
+            <label>ارتفاع السقف (م)</label>
+            <input type="number" id="dimH" value="4" step="0.1" oninput="calculatePhysics()">
+        </div>
+
+        <div class="control-box">
+            <h3>⚙️ المواصفات الفنية</h3>
+            <label>موديل السماعة</label>
+            <select id="modelSelect" onchange="calculatePhysics()">
+                <option value="CS606" data-full="6" data-half="3" data-low="1.5">CS606 (Max 6W)</option>
+                <option value="CS612" data-full="12" data-half="6" data-low="3">CS612 (Max 12W)</option>
+                <option value="CS620" data-full="20" data-half="10" data-low="5">CS620 (Max 20W)</option>
+            </select>
+            <label>مفتاح الواط (Wattage Tap)</label>
+            <select id="tapSelect" onchange="calculatePhysics()">
+                <option value="full">القدرة الكاملة (100%)</option>
+                <option value="half" selected>نصف القدرة (50%)</option>
+                <option value="low">القدرة المنخفضة (25%)</option>
+            </select>
+            <button class="btn btn-accent" onclick="smartDistribute()">✨ توزيع ذكي تلقائي</button>
+            <button class="btn btn-primary" onclick="generateFullReport()">📄 إصدار التقرير الشامل</button>
+        </div>
+        <p style="font-size:10px; color:#666; text-align:center;">* اسحب السماعات بالماوس لتعديل المواقع يدوياً</p>
+    </div>
+
+    <div class="canvas-area">
+        <canvas id="audioCanvas"></canvas>
+    </div>
+</div>
+
+<div id="reportOverlay">
+    <div class="paper">
+        <div class="report-header">
+            <div>
+                <h1 style="color:var(--motivity-red); margin:0">تقرير التصميم الصوتي المعتمد</h1>
+                <p>صادر عن محرك Motivity AI لتخطيط المساحات</p>
+            </div>
+            <div style="text-align:left">
+                <p id="repDate"></p>
+                <p><b>رقم المرجع:</b> MOT-ENG-2026</p>
+            </div>
+        </div>
+
+        <h3 style="border-right: 5px solid var(--motivity-red); padding-right:10px; margin-bottom:15px;">1. مخطط التوزيع الهندسي (Floor Plan)</h3>
+        <div style="text-align:center; border:1px solid #ddd; padding:10px; background:#f9f9f9">
+            <img id="mapImg" style="max-width:100%;">
+        </div>
+
+        <h3 style="border-right: 5px solid var(--motivity-red); padding-right:10px; margin: 25px 0 15px;">2. جدول الكميات والتحليل الفني (BOQ)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>البند</th>
+                    <th>المواصفات التقنية</th>
+                    <th>الكمية</th>
+                    <th>الإجمالي/الإعداد</th>
+                </tr>
+            </thead>
+            <tbody id="boqTable"></tbody>
+        </table>
+
+        <div class="tech-note-box" id="repNotes"></div>
+
+        <div class="no-print" style="margin-top:30px; display:flex; gap:10px">
+            <button class="btn btn-primary" style="width:150px" onclick="window.print()">طباعة التقرير</button>
+            <button class="btn btn-accent" style="width:100px" onclick="document.getElementById('reportOverlay').style.display='none'">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('audioCanvas');
+    const ctx = canvas.getContext('2d');
+    let speakers = [];
+    let isDragging = false;
+    let selectedSpeaker = null;
+
+    // تهيئة النظام والأبعاد
+    function initSystem() {
+        const L = parseFloat(document.getElementById('dimL').value);
+        const W = parseFloat(document.getElementById('dimW').value);
+        const container = canvas.parentElement;
+        const scale = Math.min((container.clientWidth - 60) / L, (container.clientHeight - 60) / W);
+        canvas.width = L * scale; canvas.height = W * scale;
+        draw();
+    }
+
+    // التوزيع الذكي
+    function smartDistribute() {
+        const L = parseFloat(document.getElementById('dimL').value);
+        const W = parseFloat(document.getElementById('dimW').value);
+        const H = parseFloat(document.getElementById('dimH').value);
+        const spacing = (H - 1.5) * 1.8;
+        const cols = Math.ceil(L / spacing);
+        const rows = Math.ceil(W / spacing);
+        speakers = [];
+        for(let r=0; r<rows; r++) {
+            for(let c=0; c<cols; c++) {
+                speakers.push({ rx: (c + 0.5) / cols, ry: (r + 0.5) / rows });
+            }
+        }
+        calculatePhysics();
+    }
+
+    // حسابات الفيزياء والقدرة
+    function calculatePhysics() {
+        const model = document.getElementById('modelSelect');
+        const tap = document.getElementById('tapSelect').value;
+        const opt = model.selectedOptions[0];
+        let wattPerSpk = parseFloat(opt.dataset[tap]);
+        
+        const totalWatt = wattPerSpk * speakers.length;
+        document.getElementById('topWatt').innerText = totalWatt.toFixed(1);
+        draw();
+    }
+
+    // رسم اللوحة
+    function draw() {
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const scale = canvas.width / parseFloat(document.getElementById('dimL').value);
+        const H = parseFloat(document.getElementById('dimH').value);
+        const coverageRadius = (H - 1.5) * 1.5 * scale;
+
+        speakers.forEach(s => {
+            const x = s.rx * canvas.width;
+            const y = s.ry * canvas.height;
+            
+            // نطاق الصوت
+            ctx.beginPath();
+            ctx.arc(x, y, coverageRadius, 0, Math.PI*2);
+            ctx.fillStyle = "rgba(56, 189, 248, 0.12)";
+            ctx.fill();
+            
+            // السماعة
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI*2);
+            ctx.fillStyle = "var(--motivity-red)";
+            ctx.fill();
+            ctx.strokeStyle = "#fff";
+            ctx.stroke();
+        });
+    }
+
+    // أحداث السحب
+    canvas.onmousedown = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
+        speakers.forEach(s => {
+            if (Math.hypot(mx - s.rx*canvas.width, my - s.ry*canvas.height) < 15) {
+                isDragging = true; selectedSpeaker = s;
+            }
+        });
+    };
+    canvas.onmousemove = (e) => {
+        if (isDragging) {
+            const rect = canvas.getBoundingClientRect();
+            selectedSpeaker.rx = (e.clientX - rect.left) / canvas.width;
+            selectedSpeaker.ry = (e.clientY - rect.top) / canvas.height;
+            draw();
+        }
+    };
+    canvas.onmouseup = () => { isDragging = false; calculatePhysics(); };
+
+    // توليد التقرير النهائي
+    function generateFullReport() {
+        const tap = document.getElementById('tapSelect').value;
+        const watt = parseFloat(document.getElementById('modelSelect').selectedOptions[0].dataset[tap]);
+        const totalWatt = watt * speakers.length;
+        const type = document.getElementById('projectType').value;
+        
+        // لوجيك الأمبلفيرات (تعدد الأجهزة)
+        let ampQty = 1;
+        let ampModel = "MA-120-MP5P";
+        if(totalWatt > 100 && totalWatt <= 220) ampModel = "MA-240-MP5P";
+        else if(totalWatt > 220) {
+            ampModel = "MA-240-MP5P";
+            ampQty = Math.ceil(totalWatt / 210);
+        }
+
+        // تخصيص الملاحظات
+        let typeAdvice = "";
+        if(type === 'hotel') typeAdvice = "تم ضبط النظام ليوفر خلفية صوتية متجانسة في الممرات مع الحفاظ على وضوح نداء الطوارئ.";
+        else if(type === 'hospital') typeAdvice = "توزيع مكثف لضمان وصول تعليمات النداء العام لجميع الأقسام بوضوح مخبري.";
+        else typeAdvice = "تم اختيار أقصى قدرة تغطية لضمان قوة الصوت أثناء المناسبات والمحاضرات في القاعة.";
+
+        document.getElementById('repDate').innerText = "تاريخ التقرير: " + new Date().toLocaleDateString('ar-EG');
+        document.getElementById('mapImg').src = canvas.toDataURL();
+        
+        document.getElementById('boqTable').innerHTML = `
+            <tr><td>سماعة سقف دائرية</td><td>Motivity ${document.getElementById('modelSelect').value}</td><td>${speakers.length}</td><td>إعداد: ${watt}W</td></tr>
+            <tr><td>مضخم صوت رقمي</td><td>Motivity ${ampModel}</td><td>${ampQty}</td><td>توزيع أحمال</td></tr>
+            <tr><td>كابلات صوت معزولة</td><td>2*1.5mm Fire Rated</td><td>${Math.round(speakers.length * 12)} م</td><td>تقديري</td></tr>
+        `;
+
+        document.getElementById('repNotes').innerHTML = `
+            <strong>📌 ملاحظات هندسية:</strong><br>
+            • نوع المنشأة المختار: <b>${document.getElementById('projectType').selectedOptions[0].innerText}</b>.<br>
+            • ${typeAdvice}<br>
+            • ملاحظة هامة: يجب ضبط مفتاح الواط خلف كل سماعة على <b>${watt}W</b> قبل الإغلاق النهائي.<br>
+            • تم توفير هامش أمان كهربائي بنسبة 15% لحماية الأمبلفيرات من التلف الناتج عن ذروة الإشارة.
+        `;
+
+        document.getElementById('reportOverlay').style.display = 'block';
+    }
+
+    window.onload = () => { initSystem(); smartDistribute(); };
+</script>
+</body>
+</html>

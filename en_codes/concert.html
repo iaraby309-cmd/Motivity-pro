@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+   <meta charset="UTF-8">
+   <title>Motivity AI - Outdoor Concert Engineering</title>
+   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+   <style>
+       :root{ --motivity-red:#e60012; --tech-blue:#38bdf8; --monitor-green:#22c55e; --bg:#0d1117; }
+       *{box-sizing:border-box; font-family:'Roboto', sans-serif; margin:0; padding:0}
+       body{background:var(--bg); color:#fff; display:flex; height:100vh; overflow:hidden}
+
+       .sidebar{width:480px; background:#161b22; padding:20px; overflow-y:auto; border-right:4px solid var(--motivity-red); flex-shrink:0}
+       .box{background:#21262d; padding:15px; border-radius:10px; margin-bottom:12px; border:1px solid #30363d}
+       h3{font-size:14px; color:var(--tech-blue); border-bottom:1px solid #444; padding-bottom:5px; margin-bottom:10px; text-transform: uppercase;}
+       label{font-size:11px; color:#8b949e; display:block; margin-top:8px}
+       input, select{width:100%; padding:8px; background:#0d1117; color:#fff; border:1px solid #30363d; border-radius:6px; margin-top:4px}
+
+       .main-view{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000}
+       canvas{background:#050505; border:2px solid #333; border-radius:12px; width:95%; max-height:75vh}
+
+       .btn-group{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px}
+       button{padding:14px; border:none; border-radius:8px; cursor:pointer; font-weight:700; transition:0.3s; font-size: 13px;}
+       .btn-smart{background:var(--tech-blue); color:#000}
+       .btn-report{background:var(--motivity-red); color:#fff}
+       .btn-reset{background:#333; color:#ff4d4d; border:1px solid #444; grid-column: span 2;}
+       .btn-reset:hover{background:#ff4d4d; color:#fff}
+
+       #reportPage{display:none; position:fixed; inset:0; background:#fff; z-index:9999; color:#333; overflow-y:auto; padding:40px}
+       .report-content{max-width:1000px; margin:auto; padding:30px; border:1px solid #ddd; background:#fff}
+       .reasoning-box{background:#f0f7ff; border-left:8px solid var(--motivity-red); padding:20px; margin:20px 0; line-height:1.7}
+
+       .status-pass { color: var(--monitor-green); font-weight: bold; }
+       .status-fail { color: var(--motivity-red); font-weight: bold; }
+
+       table{width:100%; border-collapse:collapse; margin:20px 0}
+       th, td{border:1px solid #ddd; padding:12px; text-align:left}
+       th{background:#f4f4f4; font-weight:900}
+       .report-btns{display:flex; gap:10px; margin-bottom:20px}
+
+       @media print { .no-print { display: none !important; } #reportPage { position: static; display: block; padding: 0; } .report-content { border:none; } }
+   </style>
+</head>
+<body>
+
+<div class="sidebar no-print">
+   <h2 style="color:var(--motivity-red); text-align:center; margin-bottom:15px; font-weight:900;">MOTIVITY MASTER AI</h2>
+
+   <div class="box">
+       <h3>📏 Site Engineering</h3>
+       <div style="display:flex; gap:10px">
+           <div><label>Arena Length (m)</label><input type="number" id="l" value="120" oninput="draw()"></div>
+           <div><label>Arena Width (m)</label><input type="number" id="w" value="70" oninput="draw()"></div>
+       </div>
+       <div style="display:flex; gap:10px">
+           <div><label>Stage Width (m)</label><input type="number" id="sw" value="25" oninput="draw()"></div>
+           <div><label>Stage Depth (m)</label><input type="number" id="sd" value="12" oninput="draw()"></div>
+       </div>
+       <label>Estimated Audience</label>
+       <input type="number" id="crowd" value="5000" oninput="draw()">
+   </div>
+
+   <div class="box">
+        <h3>🌬️ Weather Conditions</h3>
+        <label>Wind Speed (km/h)</label>
+        <input type="number" id="wind_speed" value="10" oninput="draw()">
+        <label>Wind Direction</label>
+        <select id="wind_dir" onchange="draw()">
+            <option value="front">Toward Audience</option>
+            <option value="side">Side Wind</option>
+            <option value="back">Toward Stage</option>
+        </select>
+        <label>Temperature (°C)</label>
+        <input type="number" id="temp" value="30" oninput="draw()">
+    </div>
+
+   <div class="box">
+       <h3>🔊 Main PA & Subwoofers</h3>
+       <label>FOH Line Array System</label>
+       <select id="main_pa" onchange="draw()"></select>
+       <input type="number" id="main_qty" value="16" oninput="draw()">
+
+       <label>Subwoofer Configuration</label>
+       <select id="sub_pa" onchange="draw()"></select>
+       <input type="number" id="sub_qty" value="12" oninput="draw()">
+
+       <label>Sub Array Layout</label>
+       <select id="sub_pos" onchange="draw()">
+           <option value="sides">LR Stack (Sides)</option>
+           <option value="front">Electronic Arc (Front-Stage)</option>
+       </select>
+   </div>
+
+   <div class="box">
+       <h3>🛰️ Fills & Delay Towers</h3>
+       <label>Out-Fills (15m)</label>
+       <select id="s1_pa" onchange="draw()"></select>
+       <input type="number" id="s1_qty" value="4" oninput="draw()">
+
+       <label>Side-Fills (40m)</label>
+       <select id="s2_pa" onchange="draw()"></select>
+       <input type="number" id="s2_qty" value="4" oninput="draw()">
+
+       <label>Delay Speakers (65m+)</label>
+       <select id="d_pa" onchange="draw()"></select>
+       <input type="number" id="d_qty" value="6" oninput="draw()">
+   </div>
+
+   <div class="box">
+       <h3>🎛️ Amplification & Processing</h3>
+       <label>Monitoring System</label>
+       <select id="mon_pa" onchange="draw()"></select>
+       <input type="number" id="mon_qty" value="8" oninput="draw()">
+
+       <label>Power Amplifiers</label>
+       <select id="amp_unit"></select>
+
+       <label>Digital Processor (DSP)</label>
+       <select id="dsp_unit"></select>
+   </div>
+
+   <div class="btn-group">
+       <button class="btn-smart" onclick="applySmart()">✨ AI Smart Design</button>
+       <button class="btn-report" onclick="openReport()">📄 Technical BOQ</button>
+       <button class="btn-reset" onclick="resetProject()">🔄 Reset Project</button>
+   </div>
+</div>
+
+<div class="main-view no-print">
+   <canvas id="stageCanvas"></canvas>
+   <p style="color:#555; font-size:11px; margin-top:10px;">* High-fidelity acoustic simulation for touring and outdoor events.</p>
+</div>
+
+<div id="reportPage">
+   <div class="report-content">
+       <div class="report-btns no-print">
+           <button onclick="document.getElementById('reportPage').style.display='none'" style="background:#666; color:#fff">🔙 Back to Editor</button>
+           <button onclick="window.print()" style="background:var(--monitor-green); color:#fff">🖨️ Print / Save PDF</button>
+       </div>
+       <h1 style="color:var(--motivity-red); border-bottom:4px solid red; padding-bottom:10px">MOTIVITY TECHNICAL ANALYSIS</h1>
+
+       <div id="verdictBox"></div>
+       <div class="reasoning-box" id="smartReasoning"></div>
+       <table id="boqTable"></table>
+
+       <h3>Acoustic Mapping (Stage View):</h3>
+       <img id="reportImg" style="width:100%; border:1px solid #333; margin-top:10px;">
+   </div>
+</div>
+
+<script>
+   const CATALOG = {
+       "MLA212": { rms: 900, spl: 134 }, "MLA210": { rms: 700, spl: 137 },
+       "MLHP312D": { rms: 900, spl: 134 }, "M10-LA": { rms: 700, spl: 136 },
+       "T-24": { rms: 800, spl: 136 }, "MTL-152": { rms: 600, spl: 128 },
+       "MTL-700 3G": { rms: 500, spl: 124 },
+       "DB-218 3G": { rms: 1400, spl: 136 }, "QX-218": { rms: 1400, spl: 135 },
+       "MCC828SD": { rms: 1600, spl: 136 }, "B-30": { rms: 1200, spl: 135 }, "AT-18B": { rms: 800, spl: 130 },
+       "DB-25 3G": { rms: 1000, spl: 133 }, "DB-25 NW": { rms: 1000, spl: 133 },
+       "HD315A": { rms: 1000, spl: 133 }, "HD312A": { rms: 1000, spl: 131 },
+       "AT-15": { rms: 500, spl: 127 }, "AT-12": { rms: 450, spl: 125 }, "AT-10": { rms: 350, spl: 123 },
+       "DB-15M 3G": { rms: 500, spl: 124 },
+       "MA-1500": { spec: "2x1500W @ 8Ω" }, "MA-1000": { spec: "2x1000W @ 8Ω" },
+       "MA-800": { spec: "2x800W @ 8Ω" }, "D11.4": { spec: "4x1100W Digital" },
+       "DP48": { spec: "4 In / 8 Out DSP" }
+   };
+
+   function fillSelectors() {
+       const specs = {
+           main_pa: ["MLA212", "MLA210", "MLHP312D", "M10-LA", "T-24"],
+           sub_pa: ["DB-218 3G", "QX-218", "MCC828SD", "B-30", "AT-18B"],
+           s1_pa: ["DB-25 3G", "DB-25 NW", "HD315A", "AT-15"],
+           s2_pa: ["MTL-152", "MTL-700 3G", "HD312A", "AT-12"],
+           d_pa: ["AT-12", "AT-10", "MTL-700 3G"],
+           mon_pa: ["DB-15M 3G", "AT-12", "AT-10"],
+           amp_unit: ["MA-1500", "MA-1000", "MA-800", "D11.4"],
+           dsp_unit: ["DP48"]
+       };
+       for(let id in specs) {
+           const el = document.getElementById(id);
+           el.innerHTML = "";
+           specs[id].forEach(m => el.add(new Option(m, m)));
+       }
+   }
+
+   const canvas = document.getElementById('stageCanvas');
+   const ctx = canvas.getContext('2d');
+
+   const drawCoverage = (x, y, angle, range, color) => {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.arc(x, y, range, (-angle/2)*Math.PI/180, (angle/2)*Math.PI/180);
+        ctx.stroke();
+        ctx.restore();
+    };
+
+   function draw() {
+       const L = parseFloat(document.getElementById('l').value) || 100;
+       const W = parseFloat(document.getElementById('w').value) || 50;
+       const sw = parseFloat(document.getElementById('sw').value) || 20;
+       const sd = parseFloat(document.getElementById('sd').value) || 10;
+       const monQty = parseInt(document.getElementById('mon_qty').value) || 0;
+       const subPos = document.getElementById('sub_pos').value;
+       const subQty = parseInt(document.getElementById('sub_qty').value) || 0;
+
+       canvas.width = 1200; canvas.height = 800;
+       const scale = Math.min(canvas.width/L, canvas.height/W) * 0.8;
+       const oX = (canvas.width - L*scale)/2;
+       const oY = (canvas.height - W*scale)/2;
+
+       ctx.clearRect(0,0,1200,800);
+       ctx.fillStyle = "#0a0a0a"; ctx.fillRect(oX, oY, L*scale, W*scale);
+
+       const sW = sw * scale; const sD = sd * scale;
+       const sX = oX + (L*scale - sW)/2;
+       ctx.fillStyle = "#161b22"; ctx.fillRect(sX, oY, sW, sD);
+       ctx.strokeStyle = "#e60012"; ctx.strokeRect(sX, oY, sW, sD);
+
+       // Coverage Drawing
+       drawCoverage(sX-20, oY+20, 90, 220, "rgba(56,189,248,0.3)");
+       drawCoverage(sX+sW+20, oY+20, 90, 220, "rgba(56,189,248,0.3)");
+
+       ctx.fillStyle = "#22c55e";
+       const mSpc = sW / (monQty + 1);
+       for(let i=1; i<=monQty; i++) {
+           ctx.beginPath(); ctx.moveTo(sX + i*mSpc - 8, oY + sD - 5);
+           ctx.lineTo(sX + i*mSpc + 8, oY + sD - 5); ctx.lineTo(sX + i*mSpc, oY + sD - 18);
+           ctx.fill();
+       }
+
+       ctx.fillStyle = "#38bdf8"; ctx.fillRect(sX-30, oY, 20, 60); ctx.fillRect(sX+sW+10, oY, 20, 60);
+
+       ctx.fillStyle = "#555";
+       if(subPos === "sides") {
+           for(let i=0; i<subQty/2; i++) { ctx.fillRect(sX-60, oY + i*20, 20, 15); ctx.fillRect(sX+sW+40, oY + i*20, 20, 15); }
+       } else {
+           const spc = sW / subQty; for(let i=0; i<subQty; i++) ctx.fillRect(sX + i*spc, oY+sD+5, 18, 12);
+       }
+
+       const dEx = (dist, qty, col) => {
+           const py = oY + (dist * scale);
+           ctx.fillStyle = col;
+           for(let i=0; i<qty/2; i++) { ctx.fillRect(oX+15, py+i*25, 15, 15); ctx.fillRect(oX+L*scale-30, py+i*25, 15, 15); }
+       };
+       dEx(15, document.getElementById('s1_qty').value, "#facc15");
+       dEx(40, document.getElementById('s2_qty').value, "#f59e0b");
+       dEx(65, document.getElementById('d_qty').value, "#a855f7");
+   }
+
+   function calculateSplay() {
+        const L = parseFloat(document.getElementById('l').value);
+        const qty = parseInt(document.getElementById('main_qty').value);
+        let table = `<tr><th>Cabinet #</th><th>Splay Angle (°)</th><th>Target Distance (m)</th></tr>`;
+        for(let i=1;i<=qty;i++){
+            const dist = (L/qty)*i;
+            const angle = (Math.atan(dist/10)*(180/Math.PI)).toFixed(1);
+            table += `<tr><td>${i}</td><td>${angle}°</td><td>${dist.toFixed(1)} m</td></tr>`;
+        }
+        return table;
+    }
+
+    function calculatePower() {
+        let total = 0;
+        ["main_pa","sub_pa","s1_pa","s2_pa","d_pa","mon_pa"].forEach(id=>{
+            const model = document.getElementById(id).value;
+            const qtyInput = document.getElementById(id.replace("_pa","_qty"));
+            const qty = parseInt(qtyInput ? qtyInput.value : 0);
+            if(CATALOG[model]?.rms) total += CATALOG[model].rms * qty;
+        });
+        const requiredKW = ((total * 1.5) / 1000 / 0.8).toFixed(1);
+        return { total, requiredKW };
+    }
+
+   function applySmart() {
+       const cr = parseInt(document.getElementById('crowd').value) || 1000;
+       document.getElementById('main_qty').value = Math.max(12, Math.ceil(cr / 400));
+       document.getElementById('sub_qty').value = Math.max(8, Math.ceil(document.getElementById('main_qty').value * 0.8));
+       draw();
+   }
+
+   function resetProject() {
+       if(confirm("Confirm system reset?")) {
+           location.reload();
+       }
+   }
+
+   function openReport() {
+       const L = parseFloat(document.getElementById('l').value);
+       const crowd = parseInt(document.getElementById('crowd').value);
+       const mq = document.getElementById('main_pa').value;
+       const mqty = parseInt(document.getElementById('main_qty').value);
+       const dq = parseInt(document.getElementById('d_qty').value);
+
+       // Weather Logic
+       const windSpeed = parseFloat(document.getElementById('wind_speed').value) || 0;
+       const windDir = document.getElementById('wind_dir').value;
+       const temp = parseFloat(document.getElementById('temp').value) || 20;
+       let windLoss = 0;
+       if (windDir === "front") windLoss = windSpeed * 0.15;
+       if (windDir === "side")  windLoss = windSpeed * 0.10;
+       if (windDir === "back")  windLoss = -windSpeed * 0.10;
+       const tempLoss = (temp - 20) * 0.05;
+
+       const baseSpl = CATALOG[mq].spl;
+       const splAtBack = (baseSpl + (10 * Math.log10(mqty))) - (20 * Math.log10(L));
+       const finalSpl = splAtBack - windLoss - tempLoss;
+
+       // Engineering Alerts
+       let alerts = "";
+       if(finalSpl < 98) alerts += "🔴 SPL at back area is insufficient.<br>";
+       if(crowd > mqty*400) alerts += "🟠 Audience size exceeds optimal PA capacity.<br>";
+       if(L > 60 && dq < 4) alerts += "🔴 Delay towers count is insufficient.<br>";
+
+       document.getElementById('verdictBox').innerHTML = alerts ?
+        `<div class="reasoning-box status-fail"><h3>🚨 AI ENGINEERING ALERTS</h3>${alerts}</div>` :
+        `<div class="reasoning-box status-pass"><h3>✅ SYSTEM OPTIMIZED</h3>No critical issues detected.</div>`;
+
+       let reasoning = `<h3>📝 Engineering Rationale:</h3>`;
+       reasoning += `<p>• Predicted Final SPL: <b>${finalSpl.toFixed(1)} dB</b> (Adjusted for weather).</p>`;
+
+       const power = calculatePower();
+       reasoning += `<h3>⚡ Power & Generator Analysis</h3>
+                     <p>• Total Audio Load: <b>${power.total} W RMS</b></p>
+                     <p>• Recommended Generator Size: <b>${power.requiredKW} kVA</b></p>
+                     <p style="color:red"><b>⚠ Always use silent generator + separate lighting feed</b></p>`;
+
+       document.getElementById('smartReasoning').innerHTML = reasoning;
+
+       let html = "<tr><th>Component</th><th>Model</th><th>Quantity</th><th>Specification</th></tr>";
+       const keys = [["Main PA", "main_pa", "main_qty"], ["Sub-Bass", "sub_pa", "sub_qty"], ["Out-Fills", "s1_pa", "s1_qty"], ["Side-Fills", "s2_pa", "s2_qty"], ["Delay", "d_pa", "d_qty"], ["Monitors", "mon_pa", "mon_qty"]];
+       keys.forEach(k => {
+           const m = document.getElementById(k[1]).value;
+           const q = document.getElementById(k[2]).value;
+           html += `<tr><td>${k[0]}</td><td>${m}</td><td>${q}</td><td>${CATALOG[m].rms ? CATALOG[m].rms+'W RMS' : CATALOG[m].spec}</td></tr>`;
+       });
+
+       html += `</table><h3>🎯 Line Array Splay Analysis</h3><table>${calculateSplay()}</table>`;
+
+       document.getElementById('boqTable').innerHTML = html;
+       document.getElementById('reportImg').src = canvas.toDataURL();
+       document.getElementById('reportPage').style.display = 'block';
+   }
+
+   window.onload = () => { fillSelectors(); draw(); };
+</script>
+</body>
+</html>

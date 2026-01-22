@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Motivity AI - Elite Engineering</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --motivity-red: #e60012; --tech-blue: #38bdf8; --bg: #0d1117; }
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: #fff; height: 100vh; display: flex; overflow: hidden; }
+
+        .sidebar { width: 380px; background: #161b22; padding: 20px; border-left: 3px solid var(--motivity-red); overflow-y: auto; z-index: 100; }
+        .box { background: #21262d; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #30363d; }
+        h3 { font-size: 14px; color: var(--tech-blue); margin-bottom: 10px; border-bottom: 1px solid #333; }
+        label { font-size: 11px; color: #8b949e; display: block; margin-top: 8px; }
+        input, select { width: 100%; padding: 10px; background: #0d1117; color: #fff; border: 1px solid #444; border-radius: 6px; margin-top: 5px; }
+        
+        .viewport { flex: 1; position: relative; background: #000; cursor: grab; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        canvas { background: #050505; border: 1px solid #222; }
+        
+        .btn-smart { background: var(--motivity-red); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        .btn-report { background: var(--tech-blue); color: black; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: 900; margin-top: 10px; cursor: pointer; }
+
+        #reportModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; padding: 30px; overflow-y: auto; }
+        .report-paper { background: #fff; color: #333; max-width: 950px; margin: auto; padding: 40px; border-radius: 5px; box-shadow: 0 0 50px rgba(0,0,0,0.3); line-height: 1.6; }
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .report-table th, .report-table td { border: 1px solid #ddd; padding: 12px; text-align: right; font-size: 13px; }
+        .eng-note { background: #f0f7ff; border-right: 5px solid var(--tech-blue); padding: 15px; margin-top: 20px; font-size: 13px; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 style="color:var(--motivity-red); text-align:center; margin-bottom:20px;">MOTIVITY AI ENGINE</h2>
+    
+    <div class="box">
+        <h3>🏢 النمط الوظيفي</h3>
+        <select id="roomMode" onchange="initDraw()">
+            <option value="meeting">غرفة اجتماعات (طاولة بيضاوية)</option>
+            <option value="conference">قاعة مؤتمرات (توزيع مسرحي)</option>
+        </select>
+    </div>
+
+    <div class="box">
+        <h3>📐 القياسات الهندسية</h3>
+        <label>طول القاعة (م)</label><input type="number" id="dim_l" value="25" oninput="initDraw()">
+        <label>عرض القاعة (م)</label><input type="number" id="dim_w" value="15" oninput="initDraw()">
+    </div>
+
+    <div class="box">
+        <h3>🔊 مجموعة سماعات Motivity</h3>
+        <select id="spkModel" onchange="initDraw()">
+            <option value="At-08">At-08 (250W) Premium High Power</option>
+            <option value="At-06">At-06 (150W) Professional Series</option>
+            <option value="Cs-08">Cs-08 (150W) Column Type</option>
+            <option value="Cs-06">Cs-06 (100W) Compact Column</option>
+            <option value="At-265">At-265 (250W) Dual Driver</option>
+        </select>
+        <label>عدد السماعات</label><input type="number" id="spkQty" value="8" oninput="initDraw()">
+    </div>
+
+    <div class="box">
+        <h3>🎙️ وحدات التحكم الرقمية</h3>
+        <label>وحدة رئيس (Chairman)</label><input type="number" id="cQty" value="1" oninput="initDraw()">
+        <label>وحدة عضو (Delegate)</label><input type="number" id="dQty" value="20" oninput="initDraw()">
+    </div>
+
+    <button class="btn-smart" onclick="autoOptimize()">⚡ التحسين الهندسي الذكي</button>
+    <button class="btn-report" onclick="generateReport()">📄 إصدار التقرير والتعليل الهندسي</button>
+</div>
+
+<div class="viewport" id="vArea">
+    <canvas id="mainCanvas"></canvas>
+</div>
+
+<div id="reportModal">
+    <div class="report-paper">
+        <h1 style="color:var(--motivity-red); border-bottom: 4px solid #333;">التقرير الفني والتعليل الهندسي للمشروع</h1>
+        <div id="reportHeader" style="margin-top:20px;"></div>
+        
+        <div style="background:#000; padding:15px; margin:20px 0; text-align:center;">
+            <img id="reportImg" style="max-width:100%; border:1px solid #444;">
+        </div>
+
+        <h3>1. جدول الكميات (BOQ)</h3>
+        <table class="report-table">
+            <thead>
+                <tr><th>البند</th><th>الموديل</th><th>الكمية</th><th>المواصفات</th></tr>
+            </thead>
+            <tbody id="boqBody"></tbody>
+        </table>
+
+        <h3>2. التعليل الهندسي (Engineering Justification)</h3>
+        <div class="eng-note" id="justificationBody"></div>
+
+        <div class="no-print" style="margin-top:30px; display:flex; gap:10px;">
+            <button onclick="window.print()" class="btn-smart">حفظ PDF</button>
+            <button onclick="document.getElementById('reportModal').style.display='none'" style="background:#eee; padding:15px; border:none; cursor:pointer;">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const vArea = document.getElementById('vArea');
+    let zoom = 0.8, offsetX = 0, offsetY = 0;
+
+    function initDraw() {
+        canvas.width = 1000; canvas.height = 700;
+        render();
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(canvas.width/2 + offsetX, canvas.height/2 + offsetY);
+        ctx.scale(zoom, zoom);
+
+        const L_m = parseFloat(document.getElementById('dim_l').value);
+        const W_m = parseFloat(document.getElementById('dim_w').value);
+        const sq = parseInt(document.getElementById('spkQty').value);
+        const mode = document.getElementById('roomMode').value;
+        const scale = 25; 
+        const L = L_m * scale, W = W_m * scale;
+
+        // القاعة
+        ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 4;
+        ctx.strokeRect(-L/2, -W/2, L, W);
+        ctx.fillStyle = "#050505"; ctx.fillRect(-L/2, -W/2, L, W);
+
+        // السماعات
+        const perSide = Math.ceil(sq/2);
+        for(let s=0; s<2; s++) {
+            for(let i=0; i<perSide; i++) {
+                let px = -L/2 + (L * (i+0.5)/perSide), py = (s===0?-W/2:W/2);
+                ctx.fillStyle = "#fff"; ctx.fillRect(px-12, py-(s===0?0:12), 24, 12);
+                ctx.fillStyle = "#e60012"; ctx.fillRect(px-8, py-(s===0?-2:10), 16, 2);
+            }
+        }
+
+        // الميكروفونات
+        const total = parseInt(document.getElementById('cQty').value) + parseInt(document.getElementById('dQty').value);
+        if(mode === 'meeting') {
+            ctx.strokeStyle="#222"; ctx.beginPath(); ctx.ellipse(0,0, L*0.35, W*0.3, 0, 0, Math.PI*2); ctx.stroke();
+            for(let i=0; i<total; i++){
+                let ang = (i*2*Math.PI)/total;
+                drawMic(Math.cos(ang)*L*0.35, Math.sin(ang)*W*0.3, i<document.getElementById('cQty').value);
+            }
+        } else {
+            for(let i=0; i<total; i++) drawMic(-L*0.4+(i%10)*L*0.09, -W*0.2+Math.floor(i/10)*W*0.15, i<document.getElementById('cQty').value);
+        }
+        ctx.restore();
+    }
+
+    function drawMic(x,y,isC) {
+        ctx.fillStyle = isC ? "#e60012" : "#38bdf8";
+        ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.fill();
+        ctx.strokeStyle="#fff"; ctx.stroke();
+    }
+
+    function autoOptimize() {
+        const L = parseFloat(document.getElementById('dim_l').value);
+        document.getElementById('spkQty').value = Math.ceil(L / 3) * 2;
+        initDraw();
+    }
+
+    function generateReport() {
+        const model = document.getElementById('spkModel').value;
+        const watts = { "At-08": 250, "At-06": 150, "Cs-08": 150, "Cs-06": 100, "At-265": 250 };
+        const sq = parseInt(document.getElementById('spkQty').value);
+        
+        document.getElementById('reportImg').src = canvas.toDataURL();
+        document.getElementById('boqBody').innerHTML = `
+            <tr><td>النظام الصوتي</td><td>Motivity ${model}</td><td>${sq}</td><td>استجابة ترددية 60Hz-18kHz</td></tr>
+            <tr><td>وحدات المؤتمر</td><td>Motivity Digital Series</td><td>${parseInt(document.getElementById('cQty').value)+parseInt(document.getElementById('dQty').value)}</td><td>توصيل Daisy-Chain CAT6</td></tr>
+            <tr><td>مضخم القدرة</td><td>Motivity Digital Amp</td><td>1</td><td>Class-D High Efficiency</td></tr>
+        `;
+
+        document.getElementById('justificationBody').innerHTML = `
+            <strong>أولاً: توزيع ضغط الصوت (SPL):</strong> تم اختيار موديل ${model} بقدرة ${watts[model]}W لضمان مستوى ضغط صوتي ثابت لا يقل عن 95dB في أبعد نقطة، مع مراعاة ارتفاع القاعة لتجنب الانعكاسات الضارة.<br><br>
+            <strong>ثانياً: معامل الوضوح (STI):</strong> تم توزيع عدد ${sq} سماعة بمسافات بينية متساوية لتقليل "تداخل الموجات" (Comb Filtering) ورفع معامل وضوح الكلام.<br><br>
+            <strong>ثالثاً: نمط التغطية:</strong> يعتمد النظام على زاوية انتشار 90 درجة أفقياً لضمان تغطية عرضية كاملة في وضعية ${document.getElementById('roomMode').value === 'meeting' ? 'الاجتماع الدائري' : 'المؤتمر الطولي'}.
+        `;
+        document.getElementById('reportModal').style.display = 'block';
+    }
+
+    window.onload = initDraw;
+</script>
+</body>
+</html>

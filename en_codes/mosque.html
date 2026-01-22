@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>MOTIVITY - Engineering Studio Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root{ --motivity-red:#e60012; --tech-blue:#38bdf8; --bg:#0d1117; }
+        *{box-sizing:border-box; font-family:'Cairo', sans-serif; margin:0; padding:0}
+        body{background:var(--bg); color:#fff; height:100vh; overflow:hidden; display:flex; flex-direction:column}
+        .wrapper{display:flex; flex:1; overflow:hidden}
+        .sidebar{width:380px; background:#161b22; padding:20px; border-right:4px solid var(--motivity-red); overflow-y:auto}
+        .box{background:#21262d; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #30363d}
+        label{font-size:11px; color:var(--tech-blue); display:block; margin-top:10px; font-weight:bold}
+        input, select{width:100%; padding:10px; background:#0d1117; color:#fff; border:1px solid #30363d; border-radius:8px; margin-top:5px}
+        button{width:100%; padding:12px; border:none; border-radius:8px; font-weight:700; cursor:pointer; margin-top:10px; transition: 0.3s}
+        .btn-primary{background:var(--motivity-red); color:#fff}
+        .btn-secondary{background:var(--tech-blue); color:#000}
+        .btn-reset{background:#30363d; color:#ff4d4d; border:1px solid #444}
+        .btn-reset:hover{background:#ff4d4d; color:#fff}
+        .btn-outline{background:#333; color:#ccc; border:1px solid #444}
+        .active-mode{background:var(--tech-blue) !important; color:#000 !important}
+        .canvas-container{flex:1; background:#000; display:flex; align-items:center; justify-content:center; padding:20px}
+        canvas{background:#0a0a0a; border:2px solid #333; border-radius:10px; cursor: crosshair; width: 100%; height: 100%; max-width: 1000px; max-height: 800px;}
+
+        /* Report View */
+        #reportView{display:none; position:fixed; inset:0; background:#fff; z-index:9999; padding:20px; overflow-y:auto; color:#333}
+        .paper{max-width:900px; margin:auto; background:#fff; padding:30px; border:1px solid #eee; border-top:10px solid var(--motivity-red)}
+        .report-grid{display:grid; grid-template-columns: 1fr 1.5fr; gap:25px; margin-bottom:20px}
+        .mini-map-box{border:1px solid #ddd; padding:15px; background:#f9f9f9; text-align:center}
+        #reportImg{width:100%; border:1px solid #ccc; margin-top:10px}
+        .table-boq{width:100%; border-collapse:collapse; margin-bottom:15px; font-size:13px}
+        .table-boq th, .table-boq td{border:1px solid #ddd; padding:10px; text-align:left}
+        .table-boq th{background:#1a1a1a; color:#fff}
+        
+        @media print { .no-print { display: none !important; } #reportView { position: absolute; inset:0; } }
+    </style>
+</head>
+<body>
+
+<div class="wrapper no-print">
+    <div class="sidebar">
+        <h2 style="text-align:center">MOTIVITY <span style="color:var(--motivity-red)">PRO</span></h2>
+        <div class="box">
+            <h3>📐 Dimensions (Meters)</h3>
+            <div style="display:flex; gap:5px">
+                <input type="number" id="m_len" value="30" oninput="draw()" placeholder="Len">
+                <input type="number" id="m_wid" value="15" oninput="draw()" placeholder="Wid">
+                <input type="number" id="m_h" value="6" oninput="draw()" placeholder="Height">
+            </div>
+        </div>
+        <div class="box">
+            <h3>🔊 Layout Engineering</h3>
+            <select id="m_model" onchange="draw()"></select>
+            <button class="btn-secondary" onclick="aiSmartDistribute()">✨ Smart Auto-Layout</button>
+            <button id="manualBtn" class="btn-outline" style="width:100%" onclick="toggleManualMode()">📍 Manual Point Mode</button>
+        </div>
+        <div class="box">
+            <h3>🔌 System Core</h3>
+            <label>Feedback Suppressor</label>
+            <select id="fs_model">
+                <option value="FB-PRO 4.0">MOTIVITY FB-PRO 4.0 (Digital)</option>
+                <option value="None">None</option>
+            </select>
+            <label>Amplifiers (MA Series)</label>
+            <select id="amp_model"></select>
+            <div id="amp_count_info" style="color:var(--tech-blue); font-size:11px; margin-top:5px; font-weight:bold"></div>
+        </div>
+        <button class="btn-primary" onclick="generateReport()">📄 Generate Final Report</button>
+        <button class="btn-reset" onclick="resetData()">🔄 Reset All Data</button>
+    </div>
+    <div class="canvas-container" id="cDiv">
+        <canvas id="mosqueCanvas"></canvas>
+    </div>
+</div>
+
+<div id="reportView">
+    <div class="paper">
+        <div style="text-align:right">
+            <button class="no-print" onclick="window.print()">Save PDF</button> 
+            <button class="no-print" onclick="document.getElementById('reportView').style.display='none'">Close</button>
+        </div>
+        <h1 style="color:var(--motivity-red); border-bottom:3px solid var(--motivity-red)">MOTIVITY TECHNICAL DESIGN</h1>
+        <div class="report-grid">
+            <div class="mini-map-box"><strong>Distribution Sketch</strong><img id="reportImg"></div>
+            <div id="eng_summary"></div>
+        </div>
+        <table class="table-boq">
+            <thead><tr><th>Item Name</th><th>Specifications</th><th>Qty</th><th>Estimated Cable</th></tr></thead>
+            <tbody id="boq-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const DB_SPK = {"AT-08": 250, "AT-06": 150, "AT-265": 250, "CS-08": 150, "CS-06": 100, "UT-08": 200};
+    const DB_AMP = [{id: "MA-450C", pwr: 900}, {id: "MA-600C", pwr: 1200}, {id: "MA-800C", pwr: 1600}, {id: "MA-1000C", pwr: 2000}, {id: "MA-1200C", pwr: 2400}, {id: "MA-1500C", pwr: 3000}];
+
+    const canvas = document.getElementById('mosqueCanvas');
+    const ctx = canvas.getContext('2d');
+    let speakers = []; let manualMode = false; let autoAmpCount = 1;
+
+    function populate() {
+        const s1 = document.getElementById('m_model'), s2 = document.getElementById('amp_model');
+        s1.innerHTML = ""; s2.innerHTML = "";
+        for (let id in DB_SPK) s1.innerHTML += `<option value="${id}">${id}</option>`;
+        DB_AMP.forEach(amp => s2.innerHTML += `<option value="${amp.id}">${amp.id}</option>`);
+    }
+
+    function toggleManualMode() { manualMode = !manualMode; document.getElementById('manualBtn').classList.toggle('active-mode', manualMode); }
+
+    function resetData() {
+        if(confirm("This will clear all speakers and dimensions. Continue?")) {
+            speakers = [];
+            document.getElementById('m_len').value = 30;
+            document.getElementById('m_wid').value = 15;
+            document.getElementById('m_h').value = 6;
+            manualMode = false;
+            document.getElementById('manualBtn').classList.remove('active-mode');
+            draw();
+            updateAmpLogic();
+        }
+    }
+
+    function draw() {
+        const div = document.getElementById('cDiv');
+        canvas.width = div.clientWidth; canvas.height = div.clientHeight;
+        const L_v = parseFloat(document.getElementById('m_len').value), W_v = parseFloat(document.getElementById('m_wid').value);
+        const scale = Math.min(canvas.width/W_v, canvas.height/L_v) * 0.85;
+        const W = W_v * scale, L = L_v * scale;
+        const x0 = (canvas.width-W)/2, y0 = (canvas.height-L)/2;
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 4; ctx.strokeRect(x0,y0,W,L);
+        
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath(); ctx.arc(x0 + W/2, y0, scale * 1.5, Math.PI, 0); ctx.fill();
+
+        ctx.fillStyle = "#fff"; ctx.font = "bold 14px Cairo";
+        ctx.fillText(`${W_v} m (Width)`, x0 + W/2 - 30, y0 - 20);
+        ctx.save(); ctx.translate(x0 - 25, y0 + L/2); ctx.rotate(-Math.PI/2);
+        ctx.fillText(`${L_v} m (Length)`, -30, 0); ctx.restore();
+
+        speakers.forEach(s => {
+            ctx.fillStyle = "#e60012"; ctx.beginPath(); ctx.arc(x0+(s.rx*W), y0+(s.ry*L), 8, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#fff"; ctx.font = "bold 11px Cairo"; ctx.fillText(s.model, x0+(s.rx*W)+12, y0+(s.ry*L)+5);
+        });
+        window.layout = {x0, y0, W, L};
+    }
+
+    canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const {x0, y0, W, L} = window.layout;
+        const rx = (e.clientX - rect.left - x0) / W, ry = (e.clientY - rect.top - y0) / L;
+        if(rx >= 0 && rx <= 1 && ry >= 0 && ry <= 1) {
+            const model = document.getElementById('m_model').value;
+            if(manualMode) speakers.push({rx, ry, model});
+            else speakers.push({rx:0, ry, model}, {rx:1, ry, model});
+            draw(); updateAmpLogic();
+        }
+    };
+
+    function updateAmpLogic() {
+        let totalWatts = 0; speakers.forEach(s => totalWatts += DB_SPK[s.model]);
+        const targetAmp = DB_AMP.find(a => a.id === "MA-800C");
+        autoAmpCount = Math.ceil((totalWatts * 1.25) / targetAmp.pwr) || 0;
+        document.getElementById('amp_model').value = targetAmp.id;
+        document.getElementById('amp_count_info').innerText = `Recommended: (${autoAmpCount}) ${targetAmp.id}`;
+    }
+
+    function aiSmartDistribute() {
+        const L = parseFloat(document.getElementById('m_len').value), model = document.getElementById('m_model').value;
+        const count = Math.max(2, Math.floor(L/6.5));
+        speakers = [];
+        for(let i=1; i<=count; i++) { let r = i/(count+1); speakers.push({rx:0, ry:r, model}, {rx:1, ry:r, model}); }
+        updateAmpLogic(); draw();
+    }
+
+    function generateReport() {
+        const L = parseFloat(document.getElementById('m_len').value), W = parseFloat(document.getElementById('m_wid').value), H = parseFloat(document.getElementById('m_h').value);
+        const fs = document.getElementById('fs_model').value;
+        let totalWatts = 0, totalCable = 0, counts = {};
+        speakers.forEach(s => {
+            counts[s.model] = (counts[s.model] || 0) + 1;
+            totalWatts += DB_SPK[s.model];
+            totalCable += (s.ry * L) + (s.rx * W) + H;
+        });
+        totalCable = Math.ceil(totalCable * 1.15);
+        
+        document.getElementById('eng_summary').innerHTML = `
+            <table class="table-boq">
+                <tr><td>Area Covered</td><td>${L*W} m²</td></tr>
+                <tr><td>Total Power</td><td>${totalWatts}W</td></tr>
+                <tr><td>Est. Cabling</td><td>~${totalCable}m</td></tr>
+                <tr><td>Processor</td><td>${fs}</td></tr>
+            </table>
+            <p style="font-size:12px; background:#f0f7ff; padding:10px"><b>Engineering Justification:</b> Balanced speaker placement ensures uniform sound pressure level (SPL) while managing acoustic reflections at ${H}m height.</p>`;
+        
+        let boq = ""; for(let m in counts) boq += `<tr><td>Speaker ${m}</td><td>Pro 8Ω Line</td><td>${counts[m]}</td><td>~${Math.ceil(totalCable/speakers.length*counts[m])}m</td></tr>`;
+        boq += `<tr><td>Amplifier ${document.getElementById('amp_model').value}</td><td>MA Professional</td><td>${autoAmpCount}</td><td>-</td></tr>`;
+        if(fs !== "None") boq += `<tr><td>Feedback Suppressor</td><td>${fs} Digital Processor</td><td>1</td><td>-</td></tr>`;
+        
+        document.getElementById('boq-body').innerHTML = boq;
+        document.getElementById('reportImg').src = canvas.toDataURL();
+        document.getElementById('reportView').style.display = 'block';
+    }
+
+    window.onload = () => { populate(); draw(); };
+    window.onresize = draw;
+</script>
+</body>
+</html>

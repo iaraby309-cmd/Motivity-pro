@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>Motivity AI - Ultimate Engineering Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{ --motivity-red:#e60012; --tech-blue:#38bdf8; --bg:#0d1117; }
+        *{box-sizing:border-box; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:0}
+        body{background:var(--bg); color:#fff; display:flex; height:100vh; overflow:hidden}
+        .sidebar{width:420px; background:#161b22; padding:20px; overflow-y:auto; border-right:3px solid var(--motivity-red); flex-shrink:0}
+        .box{background:#21262d; padding:15px; border-radius:10px; margin-bottom:12px; border:1px solid #30363d}
+        h3{font-size:13px; color:var(--tech-blue); margin-bottom:8px; border-bottom:1px solid #444; text-transform: uppercase; letter-spacing: 1px;}
+        label{font-size:11px; color:#8b949e; display:block; margin-top:8px}
+        input, select{width:100%; padding:8px; background:#0d1117; color:#fff; border:1px solid #30363d; border-radius:6px; margin-top:4px}
+        .main-view{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; background:#000}
+        canvas{background:#050505; border:1px solid #444; border-radius:10px; width:95%; height:auto; max-height:85vh; cursor: crosshair;}
+        button{padding:12px; border:none; border-radius:8px; cursor:pointer; width:100%; font-weight:700; margin-top:10px; transition: 0.3s;}
+        button:hover {opacity: 0.8;}
+        .btn-smart{background:var(--tech-blue); color:#000; border:2px solid #fff}
+        .btn-report{background:var(--motivity-red); color:#fff}
+        
+        /* Manual Additions UI */
+        .manual-item { background: #30363d; padding: 5px 10px; border-radius: 5px; margin-top: 5px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--tech-blue); }
+        .btn-del { color: var(--motivity-red); cursor: pointer; font-weight: bold; padding: 0 5px;}
+
+        #reportPage{display:none; position:fixed; inset:0; background:#fff; z-index:9999; color:#333; overflow-y:auto; padding:40px}
+        .report-content{max-width:950px; margin:auto; border:2px solid #ddd; padding:30px; box-shadow: 0 0 20px rgba(0,0,0,0.1)}
+        table{width:100%; border-collapse:collapse; margin:20px 0}
+        th, td{border:1px solid #ddd; padding:10px; text-align:left}
+        th {background:#f8f9fa; font-size: 14px;}
+        .status-box{padding:15px; border-radius:8px; margin-bottom:20px; font-weight:bold; text-align:center; line-height:1.6}
+        .ok{background:#dcfce7; color:#166534; border:1px solid #b9f6ca}
+        .low{background:#fee2e2; color:#991b1b; border:1px solid #ffcdd2}
+        .report-header { text-align: center; border-bottom: 4px solid var(--motivity-red); padding-bottom: 15px; margin-bottom: 25px; }
+        
+        @media print { .no-print { display: none !important; } #reportPage { position: relative; padding: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="sidebar no-print">
+    <h2 style="color:var(--motivity-red); text-align:center; margin-bottom:15px; letter-spacing: 1px;">MOTIVITY AI DESIGNER</h2>
+    
+    <div class="box">
+        <h3>📏 Site Dimensions & Height</h3>
+        <div style="display:flex; gap:5px">
+            <div><label>Length (m)</label><input type="number" id="room_l" value="40" oninput="draw()"></div>
+            <div><label>Width (m)</label><input type="number" id="room_w" value="25" oninput="draw()"></div>
+            <div><label>Height (H)</label><input type="number" id="room_h" value="8" oninput="draw()"></div>
+        </div>
+        <div style="display:flex; gap:5px">
+            <div><label>Stage Width</label><input type="number" id="stage_w" value="15" oninput="draw()"></div>
+            <div><label>Stage Depth</label><input type="number" id="stage_d" value="6" oninput="draw()"></div>
+        </div>
+    </div>
+
+    <button class="btn-smart" onclick="applySmart()">✨ Apply Smart AI Proposal</button>
+
+    <div class="box">
+        <h3>🔊 Main PA Systems (Motivity Series)</h3>
+        <label>Main Array Model</label>
+        <select id="main_pa" onchange="draw()">
+            <optgroup label="Line Array Series">
+                <option value="MLA212">MLA212 (Dual 12")</option>
+                <option value="MLA210">MLA210 (Dual 10")</option>
+                <option value="M10-LA">M10-LA (Compact)</option>
+            </optgroup>
+            <optgroup label="Point Source & Stadium">
+                <option value="DB-25 3G">DB-25 3G High Performance</option>
+                <option value="MTL-700 3G">MTL-700 3G Stadium</option>
+                <option value="HD-15A">HD-15A Active</option>
+            </optgroup>
+        </select>
+        <label>Unit Quantity</label><input type="number" id="main_qty" value="12" oninput="draw()">
+        
+        <label>Subwoofer System</label>
+        <select id="sub_pa" onchange="draw()">
+            <option value="QX-218">QX-218 Dual 18"</option>
+            <option value="QX-118">QX-118 Single 18"</option>
+            <option value="M-25BW">M-25BW Sub</option>
+            <option value="DB-218">DB-218 3G</option>
+        </select>
+        <label>Sub Quantity</label><input type="number" id="sub_qty" value="8" oninput="draw()">
+    </div>
+
+    <div class="box">
+        <h3>➕ Field Additions (Click Map)</h3>
+        <label>Equipment Name</label>
+        <input type="text" id="manual_name" placeholder="e.g. Mic, Piano, Console...">
+        <div id="manual_list" style="margin-top:10px"></div>
+        <button onclick="manualPoints=[]; draw(); renderList();" style="font-size:10px; background:#444; padding:5px">Clear All Points</button>
+    </div>
+
+    <div class="box">
+        <h3>📢 Monitoring & Fills</h3>
+        <label>Stage Monitors</label>
+        <select id="mon_pa" onchange="draw()">
+            <option value="DB-15M 3G">DB-15M 3G Monitor</option>
+            <option value="MTL-152">MTL-152 Monitor</option>
+            <option value="HD312A">HD312A Active</option>
+        </select>
+        <label>Monitor Qty</label><input type="number" id="mon_qty" value="4" oninput="draw()">
+        
+        <label>Side Fill Speakers</label>
+        <select id="side_pa" onchange="draw()">
+            <option value="HD315A">HD315A Side Fill</option>
+            <option value="DB-25 NW">DB-25 NW Neodymium</option>
+            <option value="MTL-700 3G">MTL-700 3G Side</option>
+        </select>
+        <label>Side Fill Qty</label><input type="number" id="side_qty" value="4" oninput="draw()">
+    </div>
+
+    <button class="btn-report" onclick="openReport()">📄 Generate Technical Report</button>
+</div>
+
+<div class="main-view no-print">
+    
+    <canvas id="mainCanvas"></canvas>
+    <div style="margin-top:5px; font-size:12px; color:#8b949e">Click map to add field points | Automated speaker distribution</div>
+</div>
+
+<div id="reportPage">
+    <div class="report-content">
+        <button class="no-print" onclick="document.getElementById('reportPage').style.display='none'" style="float:right; background:#444; color:#fff; padding:8px 15px; border-radius:5px; border:none; cursor:pointer">⬅️ Back to Editor</button>
+        <div class="report-header">
+            <h1 style="color:var(--motivity-red)">Acoustic Structural Analysis Report</h1>
+            <p style="font-weight:bold">Intelligent Design System for Indoor Event Halls</p>
+        </div>
+        
+        <div id="statusAnalysis"></div>
+        <div id="roomSummary" style="margin-bottom:20px; font-weight:bold; background:#f4f4f4; padding:15px; border-left:5px solid var(--tech-blue)"></div>
+        
+        <h3>1. Certified Equipment Matrix (BOQ)</h3>
+        <table id="boqTable"></table>
+
+        <div id="manualSection" style="display:none">
+            <h3>2. Additional Field Mapping & Peripherals</h3>
+            <table id="manualTable"></table>
+        </div>
+
+        <div style="background:#f0f7ff; padding:20px; border-radius:10px; margin-top:20px">
+            <h3 style="color:#0056b3">⚡ Engineering & Operational Notes</h3>
+            <p>• <b>Digital Processing:</b> Motivity DSP processors are mandatory for <b>Time Alignment</b> between main arrays and subwoofers.</p>
+            <p>• <b>Power Sequencing:</b> Use Motivity PS units to handle in-rush current during full system startup.</p>
+        </div>
+
+        <div style="text-align:center; margin-top:30px">
+            <h4>Final Engineering Blueprint (Top View)</h4>
+            <img id="reportImg" style="width:100%; border:2px solid #333; border-radius:10px; background:#000">
+        </div>
+        
+        <button class="btn-report no-print" onclick="window.print()" style="margin-top:20px; width:100%">Export to PDF</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    let manualPoints = [];
+
+    // Interaction Management
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        const name = document.getElementById('manual_name').value || "Field Point";
+        manualPoints.push({x, y, name});
+        renderList();
+        draw();
+    });
+
+    function renderList() {
+        const container = document.getElementById('manual_list');
+        container.innerHTML = '';
+        manualPoints.forEach((p, i) => {
+            container.innerHTML += `<div class="manual-item">${p.name} <span class="btn-del" onclick="manualPoints.splice(${i},1); renderList(); draw();">×</span></div>`;
+        });
+    }
+
+    function applySmart() {
+        const L = parseFloat(document.getElementById('room_l').value);
+        const H = parseFloat(document.getElementById('room_h').value);
+        // Calculation logic for high-quality audio coverage
+        document.getElementById('main_qty').value = Math.max(16, Math.ceil((L * H) / 20));
+        document.getElementById('sub_qty').value = Math.ceil(document.getElementById('main_qty').value / 2);
+        document.getElementById('mon_qty').value = 4;
+        document.getElementById('side_qty').value = Math.ceil(L / 8);
+        draw();
+    }
+
+    function draw() {
+        const L = parseFloat(document.getElementById('room_l').value) || 10;
+        const W = parseFloat(document.getElementById('room_w').value) || 10;
+        const sW = parseFloat(document.getElementById('stage_w').value) || 0;
+        const sD = parseFloat(document.getElementById('stage_d').value) || 0;
+
+        canvas.width = 1100; canvas.height = 650;
+        const scale = Math.min(canvas.width/L, canvas.height/W) * 0.9;
+        const oX = (canvas.width - L*scale)/2;
+        const oY = (canvas.height - W*scale)/2;
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = "#050505"; ctx.fillRect(oX, oY, L*scale, W*scale);
+        ctx.strokeStyle = "#444"; ctx.strokeRect(oX, oY, L*scale, W*scale);
+
+        // Stage Drawing
+        const stX = oX + (L*scale - sW*scale)/2;
+        ctx.strokeStyle = "#e60012"; ctx.lineWidth = 3;
+        ctx.strokeRect(stX, oY, sW*scale, sD*scale);
+        ctx.fillStyle = "rgba(230,0,18,0.1)"; ctx.fillRect(stX, oY, sW*scale, sD*scale);
+
+        // Auto Speaker Placement
+        const mq = parseInt(document.getElementById('main_qty').value);
+        ctx.fillStyle = "#38bdf8";
+        for(let i=0; i<Math.ceil(mq/2); i++) {
+            ctx.fillRect(stX - 25, oY + (i*15) + 5, 20, 12);
+            ctx.fillRect(stX + sW*scale + 5, oY + (i*15) + 5, 20, 12);
+        }
+
+        const sdq = parseInt(document.getElementById('side_qty').value);
+        ctx.fillStyle = "#facc15";
+        const sideSpacing = (W * scale) / (Math.ceil(sdq/2) + 1);
+        for(let i=1; i<=Math.ceil(sdq/2); i++) {
+            ctx.fillRect(oX + 5, oY + (i * sideSpacing), 12, 18);
+            ctx.fillRect(oX + L*scale - 17, oY + (i * sideSpacing), 12, 18);
+        }
+
+        const sq = parseInt(document.getElementById('sub_qty').value);
+        ctx.fillStyle = "#e60012";
+        for(let i=0; i<sq; i++) ctx.fillRect(stX + (i * (sW*scale/sq)) + 2, oY + sD*scale + 10, 15, 15);
+        
+        const monq = parseInt(document.getElementById('mon_qty').value);
+        ctx.fillStyle = "#4ade80";
+        for(let i=0; i<monq; i++) ctx.fillRect(stX + (i * (sW*scale/monq)) + 10, oY + sD*scale - 15, 15, 8);
+
+        // Manual Point Rendering
+        manualPoints.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
+            ctx.fillStyle = "#fff"; ctx.fill(); ctx.strokeStyle = "#e60012"; ctx.stroke();
+            ctx.fillStyle = "#fff"; ctx.font = "bold 10px Segoe UI"; ctx.fillText(p.name, p.x + 10, p.y + 5);
+        });
+    }
+
+    function openReport() {
+        const L = parseFloat(document.getElementById('room_l').value);
+        const H = parseFloat(document.getElementById('room_h').value);
+        const mq = parseInt(document.getElementById('main_qty').value);
+        
+        // Smart Engineering Validation
+        const isSafe = mq >= (L * H / 22); 
+        document.getElementById('statusAnalysis').innerHTML = isSafe ? 
+            `<div class="status-box ok">✅ EFFICIENCY RATING: System configuration is optimized. Speaker distribution ensures uniform SPL across the hall depth (${L}m).</div>` :
+            `<div class="status-box low">⚠️ ENGINEERING ALERT: Undersized System! The large distance requires more array units to maintain high-frequency clarity at the rear.</div>`;
+
+        document.getElementById('roomSummary').innerHTML = `<b>Site Profile:</b> Length: ${L}m | Width: ${document.getElementById('room_w').value}m | Height: ${H}m | Total Area: ${L*document.getElementById('room_w').value}m²`;
+        
+        document.getElementById('boqTable').innerHTML = `
+            <tr><th>System</th><th>Certified Model</th><th>Quantity</th></tr>
+            <tr><td>Main Loudspeakers</td><td>${document.getElementById('main_pa').value}</td><td>${mq} Units</td></tr>
+            <tr><td>Subwoofer Units</td><td>${document.getElementById('sub_pa').value}</td><td>${document.getElementById('sub_qty').value} Units</td></tr>
+            <tr><td>Side Fill Monitoring</td><td>${document.getElementById('side_pa').value}</td><td>${document.getElementById('side_qty').value} Units</td></tr>
+        `;
+
+        if(manualPoints.length > 0) {
+            document.getElementById('manualSection').style.display = 'block';
+            let h = '<tr><th>Field Item</th><th>Quantity</th><th>Location Status</th></tr>';
+            const counts = {};
+            manualPoints.forEach(p => counts[p.name] = (counts[p.name] || 0) + 1);
+            for(let n in counts) h += `<tr><td>${n}</td><td>${counts[n]}</td><td>Mapped on Blueprint</td></tr>`;
+            document.getElementById('manualTable').innerHTML = h;
+        }
+
+        document.getElementById('reportImg').src = canvas.toDataURL();
+        document.getElementById('reportPage').style.display = 'block';
+    }
+    window.onload = draw;
+</script>
+</body>
+</html>
