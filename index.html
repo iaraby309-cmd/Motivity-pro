@@ -1,74 +1,119 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" id="mainHtml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motivity AI | Intelligent Audio System Design</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#e60012">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motivity AI | Intelligent Audio System Design</title>
 
-    <style>
-        :root {
-            --bg: #0d1117; --card: #161b22; --primary: #e60012;
-            --accent: #38bdf8; --text: #e6edf3; --muted: #9da7b3;
-        }
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e60012">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; scroll-behavior: smooth; }
-        body { background: var(--bg); color: var(--text); line-height: 1.7; overflow-x: hidden; }
+<style>
+:root{
+  --bg:#0d1117;
+  --card:#161b22;
+  --primary:#e60012; /* اللون الأحمر الرئيسي */
+  --accent:#38bdf8;
+  --text:#e6edf3;
+  --muted:#9da7b3;
+  --white:#ffffff;
+}
 
-        nav {
-            position: fixed; top: 0; width: 100%; padding: 15px 8%;
-            background: rgba(13, 17, 23, 0.9); backdrop-filter: blur(10px);
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 1000; border-bottom: 1px solid #1f2937;
-        }
-        .logo { font-weight: 900; color: var(--primary); font-size: 1.5rem; letter-spacing: 1px; }
-        .lang-btn { 
-            background: transparent; color: var(--accent); border: 1px solid var(--accent);
-            padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: 600;
-            transition: 0.3s;
-        }
-        .lang-btn:hover { background: var(--accent); color: var(--bg); }
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',sans-serif; scroll-behavior: smooth;}
 
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        section { padding: 100px 8%; animation: fadeInUp 0.8s ease-out; }
+body{
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  overflow-x: hidden;
+}
 
-        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 25px; }
-        h1 { font-size: clamp(32px, 5vw, 60px); line-height: 1.2; }
-        h1 span { color: var(--primary); font-weight: 900; }
-        p { color: var(--muted); max-width: 800px; font-size: 1.1rem; }
-        .cta-group { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
-        .cta {
-            display: inline-block; background: var(--primary); color: #fff;
-            padding: 16px 40px; border-radius: 8px; text-decoration: none;
-            font-weight: 700; transition: 0.3s; border: none; cursor: pointer;
-        }
-        .cta:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(230, 0, 18, 0.3); }
+/* Navigation */
+nav {
+    position: fixed; top: 0; width: 100%; padding: 15px 8%;
+    background: rgba(13, 17, 23, 0.9); backdrop-filter: blur(10px);
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 1000; border-bottom: 1px solid #1f2937;
+}
+.logo { font-weight: 900; color: var(--primary); font-size: 1.5rem; letter-spacing: 1px; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 40px; }
-        .card { 
-            background: var(--card); padding: 35px; border-radius: 15px; 
-            border: 1px solid #1f2937; transition: 0.3s; 
-        }
-        .card:hover { border-color: var(--primary); transform: translateY(-5px); }
+.lang-btn { 
+    background: transparent; color: var(--accent); border: 2px solid var(--accent);
+    padding: 6px 18px; border-radius: 20px; cursor: pointer; font-weight: 700;
+    transition: 0.3s;
+}
+.lang-btn:hover { background: var(--accent); color: var(--bg); }
 
-        [lang="en"] .ar-content { display: none; }
-        [lang="ar"] .en-content { display: none; }
-        [lang="en"] { direction: ltr; text-align: left; }
-        [lang="ar"] { direction: rtl; text-align: right; }
+/* الأقسام والتحريك */
+section{padding:120px 8% 80px; animation: fadeInUp 0.8s ease-out;}
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        footer { padding: 40px; text-align: center; color: var(--muted); border-top: 1px solid #1f2937; font-size: 0.9rem; }
-        
-        /* Modal Overlay Style */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
-            display: flex; align-items: center; justify-content: center; 
-            z-index: 9999; padding: 20px;
-        }
-    </style>
+h1,h2,h3{line-height:1.3}
+h1{font-size:clamp(36px, 6vw, 54px); margin-bottom: 20px;}
+h1 span{color:var(--primary); font-weight:900}
+h2{font-size:32px; margin-bottom:30px; border-bottom: 3px solid var(--primary); width: max-content; padding-bottom: 5px;}
+
+/* زر الأكشن - إصلاح وضوح اللون */
+.cta {
+  display: inline-block; 
+  background-color: var(--primary); 
+  color: var(--white) !important; /* نص أبيض صريح */
+  padding: 18px 45px; 
+  border-radius: 10px; 
+  text-decoration: none;
+  font-weight: 900; 
+  font-size: 1.1rem;
+  border: none; 
+  cursor: pointer; 
+  transition: 0.4s;
+  box-shadow: 0 4px 15px rgba(230, 0, 18, 0.3);
+}
+.cta:hover { 
+  transform: translateY(-5px); 
+  box-shadow: 0 12px 25px rgba(230, 0, 18, 0.5);
+  filter: brightness(1.2);
+}
+
+/* الشبكة والبطاقات */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:25px;
+  margin-top:40px;
+}
+.card{
+  background:var(--card); padding:30px; border-radius:15px;
+  border: 1px solid #1f2937; transition: 0.3s;
+}
+.card:hover { border-color: var(--primary); transform: translateY(-5px); }
+.card h3 { margin-bottom: 15px; color: var(--text); }
+.card p { color: var(--muted); font-size: 0.95rem; }
+
+/* قسم طريقة العمل */
+.lang-flex{
+  display:grid; grid-template-columns: 1fr 1fr; gap:40px; margin-top: 20px;
+}
+ol li { margin-bottom: 15px; font-weight: 600; color: var(--text); }
+
+/* التحكم باللغات */
+[lang="en"] .ar-text { display: none; }
+[lang="ar"] .en-text { display: none; }
+[lang="en"] { direction: ltr; text-align: left; }
+[lang="ar"] { direction: rtl; text-align: right; }
+
+/* فوتر */
+footer {
+    padding: 60px 8%; text-align: center; border-top: 1px solid #1f2937;
+    color: var(--muted); font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .lang-flex { grid-template-columns: 1fr; }
+    .cta { width: 100%; text-align: center; }
+}
+</style>
 </head>
 
 <body>
@@ -78,93 +123,111 @@
     <button class="lang-btn" onclick="toggleLang()" id="langSwitcher">English</button>
 </nav>
 
-<section class="hero">
-    <h1 class="en-content"><span>Motivity AI</span><br>Intelligent Audio System Design</h1>
-    <h1 class="ar-content"><span>Motivity AI</span><br>لتصميم الأنظمة الصوتية الذكية</h1>
-    <p class="en-content">Professional engineering platform for designing accurate sound systems.</p>
-    <p class="ar-content">منصة هندسية احترافية لتصميم أنظمة صوتية دقيقة.</p>
-    <button onclick="goToLogin()" class="cta">
-        <span class="en-content">🚀 Start Designing Now</span>
-        <span class="ar-content">🚀 ابدأ التصميم الآن</span>
-    </button>
+<section class="hero" style="min-height: 90vh; display: flex; flex-direction: column; justify-content: center;">
+  <h1>
+    <span>Motivity AI</span><br>
+    <span class="en-text">Intelligent Audio System Design Platform</span>
+    <span class="ar-text">منصة تصميم الأنظمة الصوتية الذكية</span>
+  </h1>
+  <p class="en-text" style="max-width: 800px; color: var(--muted); margin-bottom: 30px;">Professional platform that helps governments and engineers design accurate, scalable audio systems for any environment.</p>
+  <p class="ar-text" style="max-width: 800px; color: var(--muted); margin-bottom: 30px;">منصة احترافية تساعد الجهات الحكومية والمهندسين على تصميم أنظمة صوتية دقيقة وقابلة للتوسع لأي بيئة عمل.</p>
+  
+  <button onclick="goToLogin()" class="cta">
+    <span class="en-text">🚀 Start Designing Now</span>
+    <span class="ar-text">🚀 ابدأ التصميم الآن</span>
+  </button>
 </section>
 
-<section>
-    <h2 class="en-content">Why Motivity AI?</h2>
-    <h2 class="ar-content">لماذا Motivity AI؟</h2>
-    <div class="grid">
-        <div class="card">
-            <h3>🏛 <span class="en-content">Government Ready</span><span class="ar-content">جاهز للمشاريع الحكومية</span></h3>
-            <p class="en-content">Standardized planning for large-scale projects.</p>
-            <p class="ar-content">معايير تخطيط موحدة للمشاريع الكبيرة.</p>
-        </div>
-        <div class="card">
-            <h3>🏢 <span class="en-content">Audio Firms</span><span class="ar-content">شركات الصوتيات</span></h3>
-            <p class="en-content">Professional engineering results ready for deployment.</p>
-            <p class="ar-content">نتائج هندسية احترافية جاهزة للتنفيذ.</p>
-        </div>
+<section id="why">
+  <h2 class="en-text">Why Motivity AI?</h2>
+  <h2 class="ar-text">لماذا Motivity AI؟</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>🏛 <span class="en-text">Gov-Ready</span><span class="ar-text">للمشاريع الحكومية</span></h3>
+      <p class="en-text">Standardized planning for large-scale, mission-critical projects.</p>
+      <p class="ar-text">تخطيط موحد للمشاريع الحكومية الكبرى والحساسة.</p>
     </div>
+    <div class="card">
+      <h3>👷 <span class="en-text">Engineering Logic</span><span class="ar-text">منطق هندسي</span></h3>
+      <p class="en-text">Calculations based on real physics, not guesswork or simple templates.</p>
+      <p class="ar-text">حسابات مبنية على فيزياء الصوت الحقيقية، بعيداً عن التخمين.</p>
+    </div>
+    <div class="card">
+      <h3>🏢 <span class="en-text">Business Fast</span><span class="ar-text">سرعة التنفيذ</span></h3>
+      <p class="en-text">Reduce design time by 70% with automated equipment matching.</p>
+      <p class="ar-text">تقليل وقت التصميم بنسبة 70% مع مطابقة المعدات آلياً.</p>
+    </div>
+  </div>
+</section>
+
+<section style="background: rgba(22, 27, 34, 0.5);">
+  <h2 class="en-text">How It Works</h2>
+  <h2 class="ar-text">كيف يعمل النظام؟</h2>
+  <div class="lang-flex">
+    <div class="en-text"><ol><li>Select project type</li><li>Enter dimensions</li><li>Define performance</li><li>Get full design</li></ol></div>
+    <div class="ar-text"><ol><li>اختر نوع المشروع</li><li>أدخل الأبعاد</li><li>حدد مستوى الأداء</li><li>احصل على التصميم</li></ol></div>
+  </div>
+</section>
+
+<section id="engineering">
+  <h2 class="en-text">Engineering at the Core</h2>
+  <h2 class="ar-text">القلب الهندسي للنظام</h2>
+  <div class="grid">
+    <div class="card">
+        <h3>📊 <span class="en-text">SPL Mapping</span><span class="ar-text">توزيع ضغط الصوت</span></h3>
+        <p class="en-text">Accurate mapping of Sound Pressure Levels across the area.</p>
+        <p class="ar-text">تخطيط دقيق لمستويات ضغط الصوت عبر المساحة المطلوبة.</p>
+    </div>
+    <div class="card">
+        <h3>🔌 <span class="en-text">Impedance Matching</span><span class="ar-text">مطابقة المقاومة</span></h3>
+        <p class="en-text">Automated matching between speakers and amplifiers for safety.</p>
+        <p class="ar-text">مطابقة آلية بين السماعات والمضخمات لضمان سلامة النظام.</p>
+    </div>
+    <div class="card">
+        <h3>📐 <span class="en-text">Angle Planning</span><span class="ar-text">تخطيط الزوايا</span></h3>
+        <p class="en-text">Optimal speaker angling for maximum acoustic coverage.</p>
+        <p class="ar-text">تحديد زوايا الميل المثالية للسماعات لضمان أقصى تغطية.</p>
+    </div>
+  </div>
+</section>
+
+<section style="text-align: center; background: linear-gradient(to bottom, transparent, rgba(230,0,18,0.05));">
+  <h2 class="en-text" style="width: 100%; border:none;">Ready to Design with Confidence?</h2>
+  <h2 class="ar-text" style="width: 100%; border:none;">جاهز للتصميم بكل ثقة؟</h2>
+  <p class="en-text" style="margin: 0 auto 30px;">Join the future of audio engineering today.</p>
+  <p class="ar-text" style="margin: 0 auto 30px;">انضم إلى مستقبل الهندسة الصوتية اليوم.</p>
+  <button onclick="goToLogin()" class="cta">
+    <span class="en-text">🎧 Try Motivity AI Now</span>
+    <span class="ar-text">🎧 ابدأ تجربة النظام الآن</span>
+  </button>
 </section>
 
 <footer>
-    © 2026 Motivity AI — Intelligent Audio Engineering Platform
+    <p>© 2026 Motivity AI — Intelligent Audio Engineering Platform</p>
+    <p class="en-text">Designed for Precision. Built for Engineers.</p>
+    <p class="ar-text">صمم للدقة. بني للمهندسين.</p>
 </footer>
 
 <script>
-    // 1. إدارة اللغة
     function toggleLang() {
         const html = document.getElementById('mainHtml');
         const btn = document.getElementById('langSwitcher');
         if (html.getAttribute('lang') === 'ar') {
-            html.setAttribute('lang', 'en');
-            html.setAttribute('dir', 'ltr');
+            html.setAttribute('lang', 'en'); html.setAttribute('dir', 'ltr');
             btn.innerText = 'العربية';
         } else {
-            html.setAttribute('lang', 'ar');
-            html.setAttribute('dir', 'rtl');
+            html.setAttribute('lang', 'ar'); html.setAttribute('dir', 'rtl');
             btn.innerText = 'English';
         }
     }
 
     function goToLogin() {
-        const currentLang = document.getElementById('mainHtml').getAttribute('lang');
-        window.location.href = (currentLang === 'en') ? 'index_en.html' : 'index_ar.html';
+        const lang = document.getElementById('mainHtml').getAttribute('lang');
+        window.location.href = (lang === 'en') ? 'index_en.html' : 'index_ar.html';
     }
 
-    // 2. ترحيب المستخدم لأول مرة
-    window.addEventListener('load', () => {
-        if (!localStorage.getItem('motivity_visited')) {
-            const welcome = document.createElement('div');
-            welcome.className = 'modal-overlay';
-            welcome.innerHTML = `
-                <div style="background:var(--card); padding:30px; border-radius:15px; border:1px solid var(--primary); text-align:center; max-width:400px;">
-                    <h2 style="color:var(--primary)">Welcome to Motivity AI</h2>
-                    <p style="margin:20px 0; font-size:0.9rem;">Your intelligent platform for professional audio design.<br>منصتك الذكية لتصميم الأنظمة الصوتية.</p>
-                    <button onclick="this.parentElement.parentElement.remove(); localStorage.setItem('motivity_visited', 'true');" class="cta">ابدأ الآن / Start</button>
-                </div>`;
-            document.body.appendChild(welcome);
-        }
-    });
-
-    // 3. نظام التحديثات التلقائي
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').then(reg => {
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        showUpdateNotify();
-                    }
-                });
-            });
-        });
-    }
-
-    function showUpdateNotify() {
-        const notify = document.createElement('div');
-        notify.style = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--accent); color:#000; padding:12px 20px; border-radius:50px; z-index:10000; font-weight:bold; display:flex; gap:10px; align-items:center; box-shadow:0 5px 15px rgba(0,0,0,0.3);";
-        notify.innerHTML = `<span>تحديث جديد متاح!</span><button onclick="location.reload()" style="background:#000; color:#fff; border:none; padding:5px 12px; border-radius:15px; cursor:pointer;">تحديث</button>`;
-        document.body.appendChild(notify);
+        navigator.serviceWorker.register('./sw.js');
     }
 </script>
 
