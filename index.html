@@ -2,21 +2,38 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MOTIVITY AI - الواجهة العربية</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e60012">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --motivity-red: #e60012; --dark-bg: #0a0c10; --tech-blue: #38bdf8; }
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Cairo', sans-serif; background: var(--dark-bg); color: white; }
-        #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .login-box { text-align: center; border: 1px solid var(--motivity-red); padding: 40px; border-radius: 15px; background: #161b22; box-shadow: 0 0 30px rgba(230,0,18,0.4); }
-        .login-box input { padding: 12px; width: 250px; border-radius: 8px; border: 1px solid #333; margin: 15px 0; text-align: center; background: #0d1117; color: white; font-size: 1.1em; }
-        #mainNav { background: #161b22; padding: 10px; display: none; overflow-x: auto; white-space: nowrap; border-bottom: 3px solid var(--motivity-red); position: relative; }
-        #mainNav button { background: #21262d; color: #fff; border: 1px solid #30363d; padding: 10px 25px; margin: 0 5px; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+        
+        /* تحسين استجابة شاشة الدخول للهواتف */
+        #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-box { width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--motivity-red); padding: 40px 20px; border-radius: 15px; background: #161b22; box-shadow: 0 0 30px rgba(230,0,18,0.4); }
+        .login-box input { padding: 12px; width: 90%; border-radius: 8px; border: 1px solid #333; margin: 15px 0; text-align: center; background: #0d1117; color: white; font-size: 1.1em; outline: none; }
+        
+        #mainNav { background: #161b22; padding: 10px; display: none; overflow-x: auto; white-space: nowrap; border-bottom: 3px solid var(--motivity-red); position: relative; scrollbar-width: none; }
+        #mainNav::-webkit-scrollbar { display: none; } /* إخفاء شريط التمرير في الهواتف */
+        
+        #mainNav button { background: #21262d; color: #fff; border: 1px solid #30363d; padding: 10px 20px; margin: 0 5px; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; font-size: 14px; }
         #mainNav button.active { background: var(--motivity-red); border-color: #fff; transform: scale(1.05); }
+        
         #contentArea { height: calc(100vh - 65px); width: 100%; display: none; position: relative; }
         iframe { width: 100%; height: 100%; border: none; background: #000; }
+        
         .section-label { color: #8b949e; font-size: 11px; margin: 0 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .lang-switch { position: absolute; left: 15px; top: 12px; background: #fff !important; color: #000 !important; padding: 5px 15px !important; font-size: 12px; }
+        
+        /* تعديلات أزرار التحكم العلوي */
+        .top-controls { display: inline-flex; gap: 5px; margin-left: 20px; }
+        .lang-switch { background: #fff !important; color: #000 !important; }
+        .logout-btn { background: #333 !important; color: #fff !important; border: 1px solid var(--motivity-red) !important; }
     </style>
 </head>
 <body>
@@ -26,21 +43,26 @@
         <h1 style="color:var(--motivity-red); font-weight:900; letter-spacing:2px; margin:0;">MOTIVITY AI</h1>
         <p style="color:#8b949e; margin-bottom:15px;">نظام التصميم الهندسي المتكامل</p>
         <input type="password" id="passCode" placeholder="أدخل كلمة السر"> <br>
-        <button onclick="unlock()" style="background:var(--motivity-red); color:white; border:none; padding:12px 50px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em;">دخول</button>
+        <button onclick="unlock()" style="background:var(--motivity-red); color:white; border:none; padding:12px 50px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em; width: 90%;">دخول</button>
     </div>
 </div>
 
 <nav id="mainNav">
-    <button class="lang-switch" onclick="location.href='index_en.html'">English Version</button>
+    <div class="top-controls">
+        <button class="lang-switch" onclick="location.href='index_en.html'">English</button>
+        <button class="logout-btn" onclick="logout()">خروج</button>
+    </div>
+    
     <span class="section-label">المساحات المغلقة:</span>
     <button onclick="switchTab('mosque')" id="btn-mosque">🕌 المساجد</button>
-    <button onclick="switchTab('ceiling')" id="btn-ceiling">🏢 الفنادق والسقفي</button>
+    <button onclick="switchTab('ceiling')" id="btn-ceiling">🏢 الفنادق</button>
     <button onclick="switchTab('meeting')" id="btn-meeting">🎤 الاجتماعات</button>
-    <button onclick="switchTab('party')" id="btn-party">🎉 قاعات المناسبات</button>
-    <span class="section-label">| المساحات المفتوحة:</span>
-    <button onclick="switchTab('outdoor')" id="btn-outdoor">🅿️ المواقف والممرات</button>
-    <button onclick="switchTab('concert')" id="btn-concert">🎸 الحفلات الكبرى</button>
-    <button onclick="switchTab('garden')" id="btn-garden">🌳 الحدائق المفتوحة</button>
+    <button onclick="switchTab('party')" id="btn-party">🎉 المناسبات</button>
+    
+    <span class="section-label">| المفتوحة:</span>
+    <button onclick="switchTab('outdoor')" id="btn-outdoor">🅿️ المواقف</button>
+    <button onclick="switchTab('concert')" id="btn-concert">🎸 الحفلات</button>
+    <button onclick="switchTab('garden')" id="btn-garden">🌳 الحدائق</button>
 </nav>
 
 <div id="contentArea">
@@ -50,10 +72,17 @@
 <script>
     const SECRET = "1234";
 
-    // وظيفة للتحقق من كلمة السر
+    // تفعيل PWA Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Tack! PWA Active'))
+            .catch(err => console.log('PWA Error', err));
+        });
+    }
+
     function unlock() {
         if(document.getElementById('passCode').value === SECRET) {
-            // حفظ حالة الدخول في المتصفح
             localStorage.setItem('motivity_auth', 'true');
             showApp();
         } else { 
@@ -61,29 +90,35 @@
         }
     }
 
-    // وظيفة لإظهار محتوى البرنامج
+    function logout() {
+        if(confirm("هل أنت متأكد من تسجيل الخروج؟")) {
+            localStorage.removeItem('motivity_auth');
+            location.reload();
+        }
+    }
+
     function showApp() {
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainNav').style.display = 'block';
         document.getElementById('contentArea').style.display = 'block';
-        // استعادة آخر تاب كان مفتوحاً أو فتح المسجد كافتراضي
+        // استرجاع آخر تبويب كان مفتوحاً
         const lastTab = localStorage.getItem('lastTab') || 'mosque';
         switchTab(lastTab);
     }
 
     function switchTab(tabId) {
-        const buttons = document.querySelectorAll('#mainNav button:not(.lang-switch)');
+        const buttons = document.querySelectorAll('#mainNav button:not(.lang-switch):not(.logout-btn)');
         buttons.forEach(btn => btn.classList.remove('active'));
         
         const targetBtn = document.getElementById('btn-' + tabId);
         if(targetBtn) targetBtn.classList.add('active');
         
-        // حفظ التاب الحالي وحفظه لفتحه تلقائياً عند العودة من اللغة الأخرى
+        // حفظ التبويب الحالي
         localStorage.setItem('lastTab', tabId);
         document.getElementById('mainFrame').src = "ar_codes/" + tabId + ".html";
     }
 
-    // عند تحميل الصفحة: فحص هل المستخدم مسجل دخوله مسبقاً؟
+    // التحقق من حالة الدخول عند فتح البرنامج
     window.onload = function() {
         if(localStorage.getItem('motivity_auth') === 'true') {
             showApp();
