@@ -1,4 +1,4 @@
-const CACHE_NAME = 'motivity-v3';
+const CACHE_NAME = 'motivity-v4';
 const assets = [
   './',
   './index.html', 
@@ -29,5 +29,6 @@ self.addEventListener('fetch', e => {
   );
 
 });
+
 
 
