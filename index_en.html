@@ -1,95 +1,127 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-   <meta charset="UTF-8">
-   <title>MOTIVITY AI - English Interface</title>
-   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-   <style>
-       :root { --motivity-red: #e60012; --dark-bg: #0a0c10; --tech-blue: #38bdf8; }
-       body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Cairo', sans-serif; background: var(--dark-bg); color: white; }
-       #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-       .login-box { text-align: center; border: 1px solid var(--motivity-red); padding: 40px; border-radius: 15px; background: #161b22; box-shadow: 0 0 30px rgba(230,0,18,0.4); }
-       .login-box input { padding: 12px; width: 250px; border-radius: 8px; border: 1px solid #333; margin: 15px 0; text-align: center; background: #0d1117; color: white; font-size: 1.1em; }
-       #mainNav { background: #161b22; padding: 10px; display: none; overflow-x: auto; white-space: nowrap; border-bottom: 3px solid var(--motivity-red); position: relative; }
-       #mainNav button { background: #21262d; color: #fff; border: 1px solid #30363d; padding: 10px 25px; margin: 0 5px; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; }
-       #mainNav button.active { background: var(--motivity-red); border-color: #fff; transform: scale(1.05); }
-       #contentArea { height: calc(100vh - 65px); width: 100%; display: none; position: relative; }
-       iframe { width: 100%; height: 100%; border: none; background: #000; }
-       .section-label { color: #8b949e; font-size: 11px; margin: 0 10px; text-transform: uppercase; letter-spacing: 1px; }
-       .lang-switch { position: absolute; right: 15px; top: 12px; background: #fff !important; color: #000 !important; padding: 5px 15px !important; font-size: 12px; }
-   </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTIVITY AI - English Interface</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e60012">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --motivity-red: #e60012; --dark-bg: #0a0c10; --tech-blue: #38bdf8; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Cairo', sans-serif; background: var(--dark-bg); color: white; }
+
+        /* Mobile Responsive Login */
+        #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-box { width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--motivity-red); padding: 40px 20px; border-radius: 15px; background: #161b22; box-shadow: 0 0 30px rgba(230,0,18,0.4); }
+        .login-box input { padding: 12px; width: 90%; border-radius: 8px; border: 1px solid #333; margin: 15px 0; text-align: center; background: #0d1117; color: white; font-size: 1.1em; outline: none; }
+
+        #mainNav { background: #161b22; padding: 10px; display: none; overflow-x: auto; white-space: nowrap; border-bottom: 3px solid var(--motivity-red); position: relative; scrollbar-width: none; }
+        #mainNav::-webkit-scrollbar { display: none; }
+
+        #mainNav button { background: #21262d; color: #fff; border: 1px solid #30363d; padding: 10px 20px; margin: 0 5px; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s; font-size: 14px; }
+        #mainNav button.active { background: var(--motivity-red); border-color: #fff; transform: scale(1.05); }
+
+        #contentArea { height: calc(100vh - 65px); width: 100%; display: none; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; background: #000; }
+
+        .section-label { color: #8b949e; font-size: 11px; margin: 0 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Top Controls Positioning for EN */
+        .top-controls { display: inline-flex; gap: 5px; margin-right: 20px; }
+        .lang-switch { background: #fff !important; color: #000 !important; }
+        .logout-btn { background: #333 !important; color: #fff !important; border: 1px solid var(--motivity-red) !important; }
+    </style>
 </head>
 <body>
 
 <div id="loginOverlay">
-   <div class="login-box">
-       <h1 style="color:var(--motivity-red); font-weight:900; letter-spacing:2px; margin:0;">MOTIVITY AI</h1>
-       <p style="color:#8b949e; margin-bottom:15px;">Integrated Sound Engineering System</p>
-       <input type="password" id="passCode" placeholder="Enter Access Code"> <br>
-       <button onclick="unlock()" style="background:var(--motivity-red); color:white; border:none; padding:12px 50px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em;">Login</button>
-   </div>
+    <div class="login-box">
+        <h1 style="color:var(--motivity-red); font-weight:900; letter-spacing:2px; margin:0;">MOTIVITY AI</h1>
+        <p style="color:#8b949e; margin-bottom:15px;">Integrated Engineering System</p>
+        <input type="password" id="passCode" placeholder="Enter Access Code"> <br>
+        <button onclick="unlock()" style="background:var(--motivity-red); color:white; border:none; padding:12px 50px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1.1em; width:90%;">Login</button>
+    </div>
 </div>
 
 <nav id="mainNav">
-   <button class="lang-switch" onclick="location.href='index.html'">النسخة العربية</button>
-   <span class="section-label">Indoor Spaces:</span>
-   <button onclick="switchTab('mosque')" id="btn-mosque"> Mosques</button>
-   <button onclick="switchTab('ceiling')" id="btn-ceiling">🏢 Hotels & Ceiling</button>
-   <button onclick="switchTab('meeting')" id="btn-meeting">🎤 Meetings</button>
-   <button onclick="switchTab('party')" id="btn-party">🎉 Event Halls</button>
-   <span class="section-label">| Outdoor Spaces:</span>
-   <button onclick="switchTab('outdoor')" id="btn-outdoor">🅿️ Parking & Paths</button>
-   <button onclick="switchTab('concert')" id="btn-concert">🎸 Big Concerts</button>
-   <button onclick="switchTab('garden')" id="btn-garden">🌳 Open Gardens</button>
+    <div class="top-controls">
+        <button class="lang-switch" onclick="location.href='index.html'">العربية</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <span class="section-label">Indoor:</span>
+    <button onclick="switchTab('mosque')" id="btn-mosque">🕌 Mosques</button>
+    <button onclick="switchTab('ceiling')" id="btn-ceiling">🏢 Hotels</button>
+    <button onclick="switchTab('meeting')" id="btn-meeting">🎤 Meetings</button>
+    <button onclick="switchTab('party')" id="btn-party">🎉 Events</button>
+
+    <span class="section-label">| Outdoor:</span>
+    <button onclick="switchTab('outdoor')" id="btn-outdoor">🅿️ Parking</button>
+    <button onclick="switchTab('concert')" id="btn-concert">🎸 Concerts</button>
+    <button onclick="switchTab('garden')" id="btn-garden">🌳 Gardens</button>
 </nav>
 
 <div id="contentArea">
-   <iframe id="mainFrame" name="mainFrame"></iframe>
+    <iframe id="mainFrame" name="mainFrame"></iframe>
 </div>
 
 <script>
-   const SECRET = "1234";
+    const SECRET = "1234";
 
-   function unlock() {
-       if(document.getElementById('passCode').value === SECRET) {
-           localStorage.setItem('motivity_auth', 'true'); // حفظ حالة الدخول
-           showApp();
-       } else {
-           alert("⚠️ Incorrect Access Code!");
-       }
-   }
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log('PWA Registered Successfully'));
+        });
+    }
 
-   function showApp() {
-       document.getElementById('loginOverlay').style.display = 'none';
-       document.getElementById('mainNav').style.display = 'block';
-       document.getElementById('contentArea').style.display = 'block';
+    function unlock() {
+        if(document.getElementById('passCode').value === SECRET) {
+            localStorage.setItem('motivity_auth', 'true');
+            showApp();
+        } else {
+            alert("⚠️ Incorrect Access Code!");
+        }
+    }
 
-       // استعادة آخر تاب تم فتحه، وإلا افتح المسجد
-       const lastTab = localStorage.getItem('lastTab') || 'mosque';
-       switchTab(lastTab);
-   }
+    function logout() {
+        if(confirm("Are you sure you want to logout?")) {
+            localStorage.removeItem('motivity_auth');
+            location.reload();
+        }
+    }
 
-   function switchTab(tabId) {
-       const buttons = document.querySelectorAll('#mainNav button:not(.lang-switch)');
-       buttons.forEach(btn => btn.classList.remove('active'));
+    function showApp() {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainNav').style.display = 'block';
+        document.getElementById('contentArea').style.display = 'block';
+        const lastTab = localStorage.getItem('lastTab') || 'mosque';
+        switchTab(lastTab);
+    }
 
-       const targetBtn = document.getElementById('btn-' + tabId);
-       if(targetBtn) targetBtn.classList.add('active');
+    function switchTab(tabId) {
+        const buttons = document.querySelectorAll('#mainNav button:not(.lang-switch):not(.logout-btn)');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        const targetBtn = document.getElementById('btn-' + tabId);
+        if(targetBtn) targetBtn.classList.add('active');
+        localStorage.setItem('lastTab', tabId);
+        document.getElementById('mainFrame').src = "en_codes/" + tabId + ".html";
+    }
 
-       localStorage.setItem('lastTab', tabId); // حفظ التاب الحالي
-       document.getElementById('mainFrame').src = "en_codes/" + tabId + ".html";
-   }
+    window.onload = function() {
+        if(localStorage.getItem('motivity_auth') === 'true') {
+            showApp();
+        }
+    };
 
-   // الفحص التلقائي عند التحميل
-   window.onload = function() {
-       if(localStorage.getItem('motivity_auth') === 'true') {
-           showApp();
-       }
-   };
-
-   document.getElementById('passCode').addEventListener("keyup", function(e) {
-       if (e.key === "Enter") unlock();
-   });
+    document.getElementById('passCode').addEventListener("keyup", function(e) {
+        if (e.key === "Enter") unlock();
+    });
 </script>
 </body>
 </html>
