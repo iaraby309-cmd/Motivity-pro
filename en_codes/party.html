@@ -1,280 +1,313 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <title>Motivity AI - Ultimate Engineering Suite</title>
-    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root{ --motivity-red:#e60012; --tech-blue:#38bdf8; --bg:#0d1117; }
-        *{box-sizing:border-box; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:0}
-        body{background:var(--bg); color:#fff; display:flex; height:100vh; overflow:hidden}
-        .sidebar{width:420px; background:#161b22; padding:20px; overflow-y:auto; border-right:3px solid var(--motivity-red); flex-shrink:0}
-        .box{background:#21262d; padding:15px; border-radius:10px; margin-bottom:12px; border:1px solid #30363d}
-        h3{font-size:13px; color:var(--tech-blue); margin-bottom:8px; border-bottom:1px solid #444; text-transform: uppercase; letter-spacing: 1px;}
-        label{font-size:11px; color:#8b949e; display:block; margin-top:8px}
-        input, select{width:100%; padding:8px; background:#0d1117; color:#fff; border:1px solid #30363d; border-radius:6px; margin-top:4px}
-        .main-view{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; background:#000}
-        canvas{background:#050505; border:1px solid #444; border-radius:10px; width:95%; height:auto; max-height:85vh; cursor: crosshair;}
-        button{padding:12px; border:none; border-radius:8px; cursor:pointer; width:100%; font-weight:700; margin-top:10px; transition: 0.3s;}
-        button:hover {opacity: 0.8;}
-        .btn-smart{background:var(--tech-blue); color:#000; border:2px solid #fff}
-        .btn-report{background:var(--motivity-red); color:#fff}
-        
-        /* Manual Additions UI */
-        .manual-item { background: #30363d; padding: 5px 10px; border-radius: 5px; margin-top: 5px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--tech-blue); }
-        .btn-del { color: var(--motivity-red); cursor: pointer; font-weight: bold; padding: 0 5px;}
-
-        #reportPage{display:none; position:fixed; inset:0; background:#fff; z-index:9999; color:#333; overflow-y:auto; padding:40px}
-        .report-content{max-width:950px; margin:auto; border:2px solid #ddd; padding:30px; box-shadow: 0 0 20px rgba(0,0,0,0.1)}
-        table{width:100%; border-collapse:collapse; margin:20px 0}
-        th, td{border:1px solid #ddd; padding:10px; text-align:left}
-        th {background:#f8f9fa; font-size: 14px;}
-        .status-box{padding:15px; border-radius:8px; margin-bottom:20px; font-weight:bold; text-align:center; line-height:1.6}
-        .ok{background:#dcfce7; color:#166534; border:1px solid #b9f6ca}
-        .low{background:#fee2e2; color:#991b1b; border:1px solid #ffcdd2}
-        .report-header { text-align: center; border-bottom: 4px solid var(--motivity-red); padding-bottom: 15px; margin-bottom: 25px; }
-        
-        @media print { .no-print { display: none !important; } #reportPage { position: relative; padding: 0; } }
-    </style>
+<meta charset="UTF-8">
+<title>Motivity Master AI - Outdoor Spaces 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--motivity-red:#e60012;--tech-blue:#38bdf8;--monitor-green:#22c55e;--bg:#0d1117;}
+*{box-sizing:border-box;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin:0;padding:0}
+body{background:var(--bg);color:#fff;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:420px;background:#161b22;padding:20px;overflow-y:auto;border-right:3px solid var(--motivity-red);flex-shrink:0}
+.box{background:#21262d;padding:15px;border-radius:10px;margin-bottom:12px;border:1px solid #30363d}
+h3{font-size:13px;color:var(--tech-blue);margin-bottom:8px;border-bottom:1px solid #444;padding-bottom:5px;text-transform:uppercase}
+label{font-size:11px;color:#8b949e;display:block;margin-top:8px}
+input,select{width:100%;padding:8px;background:#0d1117;color:#fff;border:1px solid #30363d;border-radius:6px;margin-top:4px;font-size:12px}
+.btn-smart{background:linear-gradient(135deg,var(--motivity-red),#99000d);color:#fff;font-weight:900;padding:15px;border:none;border-radius:8px;cursor:pointer;width:100%;margin-bottom:10px;transition:0.3s}
+.btn-reset{background:#30363d;color:#f85149;border:1px solid #f85149;padding:10px;border-radius:8px;cursor:pointer;width:100%;font-weight:bold;margin-bottom:10px}
+.tool-btn{background:#0d1117;color:#fff;border:1px solid #444;padding:8px;font-size:11px;cursor:pointer;border-radius:6px;width:32%;margin-top:5px}
+.tool-btn.active{background:var(--tech-blue);color:#000;font-weight:bold}
+.main-view{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;position:relative}
+canvas{background:#050505;border:1px solid #333;border-radius:12px;width:95%;cursor:crosshair}
+.beam-controls{position:absolute;bottom:20px;background:rgba(22,27,34,0.95);padding:15px;border-radius:15px;border:1px solid var(--tech-blue);width:85%;display:flex;gap:20px;align-items:center}
+#reportPage{display:none;position:fixed;inset:0;background:#fff;z-index:9999;color:#333;overflow-y:auto;padding:40px}
+.report-content{max-width:1100px;margin:auto;border:2px solid #ddd;padding:30px;border-top:20px solid var(--motivity-red)}
+.analysis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:20px 0}
+.analysis-card{background:#f8f9fa;padding:15px;border-radius:8px;border:1px solid #eee;text-align:center}
+.analysis-card h4{color:var(--motivity-red);font-size:14px;margin-bottom:5px}
+table{width:100%;border-collapse:collapse;margin:20px 0}
+th,td{border:1px solid #ddd;padding:12px;text-align:left}
+th{background:#f4f4f4;color:#333;font-weight:900}
+@media print{.no-print{display:none!important}}
+</style>
 </head>
 <body>
 
 <div class="sidebar no-print">
-    <h2 style="color:var(--motivity-red); text-align:center; margin-bottom:15px; letter-spacing: 1px;">MOTIVITY AI DESIGNER</h2>
-    
-    <div class="box">
-        <h3>📏 Site Dimensions & Height</h3>
-        <div style="display:flex; gap:5px">
-            <div><label>Length (m)</label><input type="number" id="room_l" value="40" oninput="draw()"></div>
-            <div><label>Width (m)</label><input type="number" id="room_w" value="25" oninput="draw()"></div>
-            <div><label>Height (H)</label><input type="number" id="room_h" value="8" oninput="draw()"></div>
-        </div>
-        <div style="display:flex; gap:5px">
-            <div><label>Stage Width</label><input type="number" id="stage_w" value="15" oninput="draw()"></div>
-            <div><label>Stage Depth</label><input type="number" id="stage_d" value="6" oninput="draw()"></div>
-        </div>
-    </div>
+<h2 style="color:var(--motivity-red);text-align:center;font-weight:900">MOTIVITY MASTER AI</h2>
 
-    <button class="btn-smart" onclick="applySmart()">✨ Apply Smart AI Proposal</button>
+<div class="box">
+<h3>📏 Venue & Stage Setup</h3>
+<div style="display:flex;gap:5px">
+<div><label>Length (L)</label><input type="number" id="room_l" value="120" oninput="draw()"></div>
+<div><label>Width (W)</label><input type="number" id="room_w" value="70" oninput="draw()"></div>
+<div><label>Height (H)</label><input type="number" id="room_h" value="15" oninput="draw()"></div>
+</div>
+<div style="display:flex;gap:5px">
+<div><label>Stage Width</label><input type="number" id="stage_w" value="25" oninput="draw()"></div>
+<div><label>Stage Depth</label><input type="number" id="stage_d" value="12" oninput="draw()"></div>
+</div>
+</div>
 
-    <div class="box">
-        <h3>🔊 Main PA Systems (Motivity Series)</h3>
-        <label>Main Array Model</label>
-        <select id="main_pa" onchange="draw()">
-            <optgroup label="Line Array Series">
-                <option value="MLA212">MLA212 (Dual 12")</option>
-                <option value="MLA210">MLA210 (Dual 10")</option>
-                <option value="M10-LA">M10-LA (Compact)</option>
-            </optgroup>
-            <optgroup label="Point Source & Stadium">
-                <option value="DB-25 3G">DB-25 3G High Performance</option>
-                <option value="MTL-700 3G">MTL-700 3G Stadium</option>
-                <option value="HD-15A">HD-15A Active</option>
-            </optgroup>
-        </select>
-        <label>Unit Quantity</label><input type="number" id="main_qty" value="12" oninput="draw()">
-        
-        <label>Subwoofer System</label>
-        <select id="sub_pa" onchange="draw()">
-            <option value="QX-218">QX-218 Dual 18"</option>
-            <option value="QX-118">QX-118 Single 18"</option>
-            <option value="M-25BW">M-25BW Sub</option>
-            <option value="DB-218">DB-218 3G</option>
-        </select>
-        <label>Sub Quantity</label><input type="number" id="sub_qty" value="8" oninput="draw()">
-    </div>
+<div class="box">
+<h3>🎯 Event Type</h3>
+<select id="event_type">
+<option value="auto">Auto-Detect</option>
+<option value="wedding">Wedding / Gala</option>
+<option value="concert">Concert / Festival</option>
+</select>
+</div>
 
-    <div class="box">
-        <h3>➕ Field Additions (Click Map)</h3>
-        <label>Equipment Name</label>
-        <input type="text" id="manual_name" placeholder="e.g. Mic, Piano, Console...">
-        <div id="manual_list" style="margin-top:10px"></div>
-        <button onclick="manualPoints=[]; draw(); renderList();" style="font-size:10px; background:#444; padding:5px">Clear All Points</button>
-    </div>
+<button class="btn-reset" onclick="resetCanvas()">🔄 Reset Layout</button>
 
-    <div class="box">
-        <h3>📢 Monitoring & Fills</h3>
-        <label>Stage Monitors</label>
-        <select id="mon_pa" onchange="draw()">
-            <option value="DB-15M 3G">DB-15M 3G Monitor</option>
-            <option value="MTL-152">MTL-152 Monitor</option>
-            <option value="HD312A">HD312A Active</option>
-        </select>
-        <label>Monitor Qty</label><input type="number" id="mon_qty" value="4" oninput="draw()">
-        
-        <label>Side Fill Speakers</label>
-        <select id="side_pa" onchange="draw()">
-            <option value="HD315A">HD315A Side Fill</option>
-            <option value="DB-25 NW">DB-25 NW Neodymium</option>
-            <option value="MTL-700 3G">MTL-700 3G Side</option>
-        </select>
-        <label>Side Fill Qty</label><input type="number" id="side_qty" value="4" oninput="draw()">
-    </div>
+<div class="box">
+<h3>🔊 2026 Full Catalogue</h3>
+<label>1. Main & Side Systems</label>
+<select id="sel_main">
+<optgroup label="Point Source">
+<option value="DB-25 NW" data-spl="133" data-h="100" data-v="70">DB-25 NW (1000W / 133dB)</option>
+<option value="DB-25 3G" data-spl="130" data-h="100" data-v="60">DB-25 3G (1000W / 130dB)</option>
+<option value="MTL-700 3G" data-spl="126" data-h="90" data-v="60">MTL-700 3G (500W)</option>
+</optgroup>
+<optgroup label="Line Array Series">
+<option value="MLA212" data-spl="138" data-h="90" data-v="10">MLA212 (Dual 12" - 900W)</option>
+<option value="MLA210" data-spl="135" data-h="90" data-v="10">MLA210 (Dual 10" - 700W)</option>
+<option value="M10-LA" data-spl="132" data-h="100" data-v="10">M10-LA (Compact 700W)</option>
+<option value="MLA208" data-spl="130" data-h="100" data-v="10">MLA208 (Dual 8")</option>
+</optgroup>
+</select>
 
-    <button class="btn-report" onclick="openReport()">📄 Generate Technical Report</button>
+<label>2. Subs & Monitoring</label>
+<select id="sel_extra">
+<option value="DB-218 3G">DB-218 3G (Dual 18" - 1400W)</option>
+<option value="QX-218">QX-218 (Dual 18" Touring)</option>
+<option value="HD-SUB-18A">HD-SUB-18A (Active Sub)</option>
+<option value="DB-15M 3G">DB-15M 3G (Stage Monitor)</option>
+<option value="MTL-152">MTL-152 (KTV/Monitor)</option>
+</select>
+
+<div style="display:flex;justify-content:space-between;margin-top:10px">
+<button class="tool-btn active" id="btn_main" onclick="setMode('main')">Add Main</button>
+<button class="tool-btn" id="btn_sub" onclick="setMode('sub')">Add Sub/Mon</button>
+<button class="tool-btn" id="btn_side" onclick="setMode('side')">Add Side</button>
+</div>
+</div>
+
+<button class="btn-smart" onclick="applySmartLayout()">🚀 Smart Auto-Deploy</button>
+<button class="btn-smart" style="background:var(--tech-blue);color:#000" onclick="generateReport()">📄 Generate Engineering Report</button>
 </div>
 
 <div class="main-view no-print">
-    
-    <canvas id="mainCanvas"></canvas>
-    <div style="margin-top:5px; font-size:12px; color:#8b949e">Click map to add field points | Automated speaker distribution</div>
+<canvas id="mainCanvas"></canvas>
+<div class="beam-controls">
+<div style="flex:1">
+<label style="color:var(--tech-blue);margin:0">Beam Rotation</label>
+<input type="range" id="beam_angle" min="0" max="360" value="90" oninput="updateSelected()">
+</div>
+<div style="flex:1">
+<label style="color:var(--tech-blue);margin:0">Effective Throw</label>
+<input type="range" id="beam_range" min="50" max="850" value="400" oninput="updateSelected()">
+</div>
+<div id="sel_name" style="font-weight:bold;font-size:12px;width:130px;color:var(--motivity-red)">-- Select Product --</div>
+</div>
 </div>
 
 <div id="reportPage">
-    <div class="report-content">
-        <button class="no-print" onclick="document.getElementById('reportPage').style.display='none'" style="float:right; background:#444; color:#fff; padding:8px 15px; border-radius:5px; border:none; cursor:pointer">⬅️ Back to Editor</button>
-        <div class="report-header">
-            <h1 style="color:var(--motivity-red)">Acoustic Structural Analysis Report</h1>
-            <p style="font-weight:bold">Intelligent Design System for Indoor Event Halls</p>
-        </div>
-        
-        <div id="statusAnalysis"></div>
-        <div id="roomSummary" style="margin-bottom:20px; font-weight:bold; background:#f4f4f4; padding:15px; border-left:5px solid var(--tech-blue)"></div>
-        
-        <h3>1. Certified Equipment Matrix (BOQ)</h3>
-        <table id="boqTable"></table>
-
-        <div id="manualSection" style="display:none">
-            <h3>2. Additional Field Mapping & Peripherals</h3>
-            <table id="manualTable"></table>
-        </div>
-
-        <div style="background:#f0f7ff; padding:20px; border-radius:10px; margin-top:20px">
-            <h3 style="color:#0056b3">⚡ Engineering & Operational Notes</h3>
-            <p>• <b>Digital Processing:</b> Motivity DSP processors are mandatory for <b>Time Alignment</b> between main arrays and subwoofers.</p>
-            <p>• <b>Power Sequencing:</b> Use Motivity PS units to handle in-rush current during full system startup.</p>
-        </div>
-
-        <div style="text-align:center; margin-top:30px">
-            <h4>Final Engineering Blueprint (Top View)</h4>
-            <img id="reportImg" style="width:100%; border:2px solid #333; border-radius:10px; background:#000">
-        </div>
-        
-        <button class="btn-report no-print" onclick="window.print()" style="margin-top:20px; width:100%">Export to PDF</button>
-    </div>
+<div class="report-content">
+<button onclick="document.getElementById('reportPage').style.display='none'" class="no-print" style="padding:5px 15px;cursor:pointer">❌ Close</button>
+<h1 style="color:var(--motivity-red);text-align:center;font-weight:900">Acoustic Analysis Report 2026</h1>
+<div class="analysis-grid">
+<div class="analysis-card">
+<h4>🔊 Max SPL</h4>
+<p id="rep_spl_val">-- dB</p>
+<small>At farthest coverage point</small>
+</div>
+<div class="analysis-card">
+<h4>⏳ Delay Timing</h4>
+<p id="rep_delay_val">-- ms</p>
+<small>For rear zone alignment</small>
+</div>
+<div class="analysis-card">
+<h4>📐 Dispersion (H/V)</h4>
+<p id="rep_angle_val">-- / --</p>
+<small>Horizontal / Vertical</small>
+</div>
+</div>
+<div id="boqSection"></div>
+<h3 style="border-bottom:2px solid #eee;margin-top:20px;">🗺️ Acoustic Simulation Map</h3>
+<img id="reportImg" style="width:100%;background:#050505;border-radius:15px;margin-top:15px">
+</div>
 </div>
 
 <script>
-    const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d');
-    let manualPoints = [];
+const canvas=document.getElementById('mainCanvas');
+const ctx=canvas.getContext('2d');
+let points=[];
+let currentMode='main';
+let selectedPoint=null;
 
-    // Interaction Management
-    canvas.addEventListener('mousedown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-        const name = document.getElementById('manual_name').value || "Field Point";
-        manualPoints.push({x, y, name});
-        renderList();
-        draw();
-    });
+const CATALOG={
+"MLA212":{spl:138,hAngle:90,vAngle:10},
+"MLA210":{spl:135,hAngle:90,vAngle:10},
+"M10-LA":{spl:132,hAngle:100,vAngle:10},
+"MLA208":{spl:130,hAngle:100,vAngle:10},
+"HD315A":{spl:131,hAngle:90,vAngle:60},
+"HD312A":{spl:128,hAngle:90,vAngle:60},
+"DB-25 NW":{spl:133,hAngle:100,vAngle:70},
+"DB-25 3G":{spl:130,hAngle:100,vAngle:60},
+"MTL-700 3G":{spl:126,hAngle:90,vAngle:60},
+"DB-218 3G":{spl:140,hAngle:45,vAngle:45},
+"QX-218":{spl:140,hAngle:45,vAngle:45},
+"HD-SUB-18A":{spl:140,hAngle:45,vAngle:45},
+"DB-15M 3G":{spl:120,hAngle:90,vAngle:25},
+"MTL-152":{spl:120,hAngle:90,vAngle:25}
+};
 
-    function renderList() {
-        const container = document.getElementById('manual_list');
-        container.innerHTML = '';
-        manualPoints.forEach((p, i) => {
-            container.innerHTML += `<div class="manual-item">${p.name} <span class="btn-del" onclick="manualPoints.splice(${i},1); renderList(); draw();">×</span></div>`;
-        });
-    }
+function setMode(m){currentMode=m;document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));document.getElementById('btn_'+m).classList.add('active');}
 
-    function applySmart() {
-        const L = parseFloat(document.getElementById('room_l').value);
-        const H = parseFloat(document.getElementById('room_h').value);
-        // Calculation logic for high-quality audio coverage
-        document.getElementById('main_qty').value = Math.max(16, Math.ceil((L * H) / 20));
-        document.getElementById('sub_qty').value = Math.ceil(document.getElementById('main_qty').value / 2);
-        document.getElementById('mon_qty').value = 4;
-        document.getElementById('side_qty').value = Math.ceil(L / 8);
-        draw();
-    }
+function resetCanvas(){points=[];selectedPoint=null;document.getElementById('sel_name').innerText="-- Select Product --";draw();}
 
-    function draw() {
-        const L = parseFloat(document.getElementById('room_l').value) || 10;
-        const W = parseFloat(document.getElementById('room_w').value) || 10;
-        const sW = parseFloat(document.getElementById('stage_w').value) || 0;
-        const sD = parseFloat(document.getElementById('stage_d').value) || 0;
+function updateSelected(){if(selectedPoint){selectedPoint.angle=parseInt(document.getElementById('beam_angle').value);selectedPoint.range=parseInt(document.getElementById('beam_range').value);draw();}}
 
-        canvas.width = 1100; canvas.height = 650;
-        const scale = Math.min(canvas.width/L, canvas.height/W) * 0.9;
-        const oX = (canvas.width - L*scale)/2;
-        const oY = (canvas.height - W*scale)/2;
+function getEventProfile(){
+const type=document.getElementById('event_type').value;
+const L=+room_l.value;let load="light";if(L>40)load="heavy";else if(L>25)load="medium";if(type==="auto"){if(L>40)return{type:"concert",load};return{type:"wedding",load};}return{type,load};
+}
 
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle = "#050505"; ctx.fillRect(oX, oY, L*scale, W*scale);
-        ctx.strokeStyle = "#444"; ctx.strokeRect(oX, oY, L*scale, W*scale);
+function applySmartLayout(){
+points=[];
+const profile=getEventProfile();
+if(profile.type==="concert"){deployLineArraySystem(profile);}
+else{deployPointSourceSystem(profile);}
+draw();
+}
 
-        // Stage Drawing
-        const stX = oX + (L*scale - sW*scale)/2;
-        ctx.strokeStyle = "#e60012"; ctx.lineWidth = 3;
-        ctx.strokeRect(stX, oY, sW*scale, sD*scale);
-        ctx.fillStyle = "rgba(230,0,18,0.1)"; ctx.fillRect(stX, oY, sW*scale, sD*scale);
+function deployLineArraySystem(profile){
+const L=+room_l.value,W=+room_w.value,sW=+stage_w.value,sD=+stage_d.value;
+const scale=Math.min(1100/L,600/W)*0.8;
+const oX=(1100-L*scale)/2,oY=(600-W*scale)/2,stX=oX+(L*scale-sW*scale)/2;
+const elementsPerSide=Math.max(4,Math.ceil(L/10)),finalElements=elementsPerSide%2===0?elementsPerSide:elementsPerSide+1,toeIn=10;
 
-        // Auto Speaker Placement
-        const mq = parseInt(document.getElementById('main_qty').value);
-        ctx.fillStyle = "#38bdf8";
-        for(let i=0; i<Math.ceil(mq/2); i++) {
-            ctx.fillRect(stX - 25, oY + (i*15) + 5, 20, 12);
-            ctx.fillRect(stX + sW*scale + 5, oY + (i*15) + 5, 20, 12);
-        }
+points.push({x:stX-30,y:oY+(sD*scale/2),type:'main',name:'Line Array L',angle:90+toeIn,range:L*scale*0.9,spl:138,hAngle:90,vAngle:10,isLineArray:true,elements:finalElements/2});
+points.push({x:stX+(sW*scale)+30,y:oY+(sD*scale/2),type:'main',name:'Line Array R',angle:90-toeIn,range:L*scale*0.9,spl:138,hAngle:90,vAngle:10,isLineArray:true,elements:finalElements/2});
 
-        const sdq = parseInt(document.getElementById('side_qty').value);
-        ctx.fillStyle = "#facc15";
-        const sideSpacing = (W * scale) / (Math.ceil(sdq/2) + 1);
-        for(let i=1; i<=Math.ceil(sdq/2); i++) {
-            ctx.fillRect(oX + 5, oY + (i * sideSpacing), 12, 18);
-            ctx.fillRect(oX + L*scale - 17, oY + (i * sideSpacing), 12, 18);
-        }
+const subCount=profile.load==="heavy"?6:4;
+for(let i=0;i<subCount;i++){points.push({x:stX+(sW*scale/(subCount-1))*i,y:oY+(sD*scale)+25,type:'sub',name:'Subwoofer',angle:90,range:200});}
 
-        const sq = parseInt(document.getElementById('sub_qty').value);
-        ctx.fillStyle = "#e60012";
-        for(let i=0; i<sq; i++) ctx.fillRect(stX + (i * (sW*scale/sq)) + 2, oY + sD*scale + 10, 15, 15);
-        
-        const monq = parseInt(document.getElementById('mon_qty').value);
-        ctx.fillStyle = "#4ade80";
-        for(let i=0; i<monq; i++) ctx.fillRect(stX + (i * (sW*scale/monq)) + 10, oY + sD*scale - 15, 15, 8);
+const sideCountPerSide = profile.load === "heavy" ? 3 : 2;
+for (let i = 0; i < sideCountPerSide; i++) {
+    const yPos = oY + (W * scale / (sideCountPerSide + 1)) * (i + 1);
+    points.push({x: oX + 15, y: yPos, type: 'side', name: 'Side Fill (Left)', angle: 0, range: (W * scale) * 0.4, hAngle: 90});
+    points.push({x: oX + (L * scale) - 15, y: yPos, type: 'side', name: 'Side Fill (Right)', angle: 180, range: (W * scale) * 0.4, hAngle: 90});
+}
 
-        // Manual Point Rendering
-        manualPoints.forEach(p => {
-            ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
-            ctx.fillStyle = "#fff"; ctx.fill(); ctx.strokeStyle = "#e60012"; ctx.stroke();
-            ctx.fillStyle = "#fff"; ctx.font = "bold 10px Segoe UI"; ctx.fillText(p.name, p.x + 10, p.y + 5);
-        });
-    }
+let monCount=sW>16?8:(sW>10?6:4);
+for(let i=0;i<monCount;i++){points.push({x:stX+(sW*scale/(monCount-1))*i,y:oY+(sD*scale)-10,type:'sub',name:'Stage Monitor',angle:270,range:120});}
+}
 
-    function openReport() {
-        const L = parseFloat(document.getElementById('room_l').value);
-        const H = parseFloat(document.getElementById('room_h').value);
-        const mq = parseInt(document.getElementById('main_qty').value);
-        
-        // Smart Engineering Validation
-        const isSafe = mq >= (L * H / 22); 
-        document.getElementById('statusAnalysis').innerHTML = isSafe ? 
-            `<div class="status-box ok">✅ EFFICIENCY RATING: System configuration is optimized. Speaker distribution ensures uniform SPL across the hall depth (${L}m).</div>` :
-            `<div class="status-box low">⚠️ ENGINEERING ALERT: Undersized System! The large distance requires more array units to maintain high-frequency clarity at the rear.</div>`;
+function deployPointSourceSystem(profile){
+const L=+room_l.value,W=+room_w.value;
+const scale=Math.min(1100/L,600/W)*0.8;
+const oX=(1100-L*scale)/2,oY=(600-W*scale)/2;
+const zones=Math.ceil(L/20);
+for(let i=0;i<zones;i++){points.push({x:oX+(L*scale/(zones+1))*(i+1),y:oY+30,type:'main',name:'Point Source Unit',angle:90,range:L*scale/zones,spl:130,hAngle:100,vAngle:60});}
+}
 
-        document.getElementById('roomSummary').innerHTML = `<b>Site Profile:</b> Length: ${L}m | Width: ${document.getElementById('room_w').value}m | Height: ${H}m | Total Area: ${L*document.getElementById('room_w').value}m²`;
-        
-        document.getElementById('boqTable').innerHTML = `
-            <tr><th>System</th><th>Certified Model</th><th>Quantity</th></tr>
-            <tr><td>Main Loudspeakers</td><td>${document.getElementById('main_pa').value}</td><td>${mq} Units</td></tr>
-            <tr><td>Subwoofer Units</td><td>${document.getElementById('sub_pa').value}</td><td>${document.getElementById('sub_qty').value} Units</td></tr>
-            <tr><td>Side Fill Monitoring</td><td>${document.getElementById('side_pa').value}</td><td>${document.getElementById('side_qty').value} Units</td></tr>
-        `;
+function draw(){
+const L=+room_l.value,W=+room_w.value;
+const sW=+stage_w.value,sD=+stage_d.value;
+canvas.width=1100;canvas.height=600;
+const scale=Math.min(canvas.width/L,canvas.height/W)*0.8;
+const oX=(canvas.width-L*scale)/2,oY=(canvas.height-W*scale)/2;
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.fillStyle="#0d1117";ctx.fillRect(oX,oY,L*scale,W*scale);
+ctx.strokeStyle="#333";ctx.lineWidth=4;ctx.strokeRect(oX,oY,L*scale,W*scale);
 
-        if(manualPoints.length > 0) {
-            document.getElementById('manualSection').style.display = 'block';
-            let h = '<tr><th>Field Item</th><th>Quantity</th><th>Location Status</th></tr>';
-            const counts = {};
-            manualPoints.forEach(p => counts[p.name] = (counts[p.name] || 0) + 1);
-            for(let n in counts) h += `<tr><td>${n}</td><td>${counts[n]}</td><td>Mapped on Blueprint</td></tr>`;
-            document.getElementById('manualTable').innerHTML = h;
-        }
+const stX=oX+(L*scale-sW*scale)/2;
+ctx.fillStyle="rgba(230,0,18,0.1)";ctx.fillRect(stX,oY,sW*scale,sD*scale);
+ctx.strokeStyle="#e60012";ctx.strokeRect(stX,oY,sW*scale,sD*scale);
 
-        document.getElementById('reportImg').src = canvas.toDataURL();
-        document.getElementById('reportPage').style.display = 'block';
-    }
-    window.onload = draw;
+points.forEach(p=>{
+const angleRad=p.angle*(Math.PI/180);
+const spread=(p.hAngle||100)*(Math.PI/180);
+const grad=ctx.createRadialGradient(p.x,p.y,5,p.x,p.y,p.range);
+if(p.type==='main'){grad.addColorStop(0,'rgba(56,189,248,0.6)');grad.addColorStop(1,'rgba(56,189,248,0.05)');}
+else if(p.type==='side'){grad.addColorStop(0,'rgba(34,197,94,0.6)');grad.addColorStop(1,'rgba(34,197,94,0.05)');}
+else{grad.addColorStop(0,'rgba(230,0,18,0.3)');grad.addColorStop(1,'transparent');}
+ctx.fillStyle=grad;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.arc(p.x,p.y,p.range,angleRad-spread/2,angleRad+spread/2);ctx.closePath();ctx.fill();
+if(p.isLineArray) drawLineArrayStack(p); else drawRegularSpeaker(p);
+});
+}
+
+function drawRegularSpeaker(p){
+ctx.beginPath();ctx.arc(p.x,p.y,8,0,Math.PI*2);
+ctx.fillStyle=(p===selectedPoint)?"#fff":(p.type==='main'?'#38bdf8':p.type==='side'?'#22c55e':'#e60012');
+ctx.fill();ctx.strokeStyle="#fff";ctx.stroke();
+ctx.fillStyle="#fff";ctx.font="bold 10px Segoe UI";ctx.fillText(p.name,p.x+12,p.y+3);
+}
+
+function drawLineArrayStack(p){
+const unitWidth=10,unitHeight=6,spacing=2;
+const angleRad=p.angle*Math.PI/180;
+ctx.save();ctx.translate(p.x,p.y);ctx.rotate(angleRad-Math.PI/2);
+for(let i=0;i<p.elements;i++){ctx.fillStyle="rgba(56,189,248,0.9)";ctx.fillRect(-unitWidth/2,-(i*(unitHeight+spacing)),unitWidth,unitHeight);ctx.strokeStyle="#fff";ctx.strokeRect(-unitWidth/2,-(i*(unitHeight+spacing)),unitWidth,unitHeight);}
+ctx.restore();ctx.fillStyle="#38bdf8";ctx.font="bold 11px Segoe UI";ctx.fillText(`Line Array (${p.elements} Units)`,p.x+14,p.y-(p.elements*4));
+}
+
+canvas.addEventListener('mousedown',e=>{
+const rect=canvas.getBoundingClientRect();
+const x=(e.clientX-rect.left)*(canvas.width/rect.width);
+const y=(e.clientY-rect.top)*(canvas.height/rect.height);
+const clicked=points.find(p=>Math.hypot(p.x-x,p.y-y)<15);
+if(clicked){selectedPoint=clicked;document.getElementById('sel_name').innerText=selectedPoint.name;}
+else{
+const sel=document.getElementById(currentMode==='main'?'sel_main':'sel_extra');
+const opt=sel.options[sel.selectedIndex];
+const cat=CATALOG[opt.value]||{spl:120,hAngle:90,vAngle:60};
+points.push({x,y,type:currentMode,name:opt.value,angle:90,range:400,spl:cat.spl,hAngle:cat.hAngle,vAngle:cat.vAngle});
+selectedPoint=points[points.length-1];
+}
+draw();
+});
+
+function buildEngineeringDecision(){
+const profile=getEventProfile();
+const L=+room_l.value,W=+room_w.value;
+const mainCount=points.filter(p=>p.type==='main').length;
+const sideCount=points.filter(p=>p.type==='side').length;
+const subCount=points.filter(p=>p.type==='sub'&&p.name.includes("Sub")).length;
+const monitorCount=points.filter(p=>p.name.includes("Monitor")||p.name.includes("مونيتور")).length;
+return{
+eventText:`System designed for a (${profile.type==="concert"?"Concert/Event":"Wedding/Gala"}) in a space of ${L}m x ${W}m.`,
+systemText:`Includes ${mainCount} Main speakers and ${sideCount} Side Fills for peripheral audience coverage.`,
+subText:`Deployed ${subCount} Subwoofers for low-frequency management.`,
+monitorText:`${monitorCount} Stage Monitors for performer monitoring.`,
+alternativeText:`Layout can be manually adjusted for localized SPL optimization.`
+};
+}
+
+function generateReport(){
+const decision=buildEngineeringDecision();
+const counts={};
+points.forEach(p=>counts[p.name]=(counts[p.name]||0)+1);
+document.getElementById('boqSection').innerHTML=`
+<div style="background:#f0f7ff;padding:15px;border-radius:10px;margin-bottom:20px;border-left:5px solid var(--tech-blue)">
+<h3>📘 Engineering Decision Summary</h3>
+<p>${decision.eventText}</p>
+<p><b>Architecture:</b> ${decision.systemText}</p>
+<p><b>Low-Freq Design:</b> ${decision.subText}</p>
+<p><b>Stage Monitoring:</b> ${decision.monitorText}</p>
+<p><b>Alternative Scenario:</b> ${decision.alternativeText}</p>
+</div>
+<h3>📦 Bill of Quantities (BOQ)</h3>
+<table><tr><th>Product Description</th><th>Quantity</th></tr>`+
+Object.entries(counts).map(([n,c])=>`<tr><td><b>${n}</b></td><td>${c} Units</td></tr>`).join('')+
+`</table>`;
+document.getElementById('reportImg').src=canvas.toDataURL();
+document.getElementById('reportPage').style.display='block';
+}
+
+window.onload=draw;
 </script>
 </body>
 </html>
