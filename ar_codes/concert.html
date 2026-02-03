@@ -1,280 +1,335 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>نظام Motivity AI - الإصدار الهندسي المتكامل</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root{ --motivity-red:#e60012; --tech-blue:#38bdf8; --monitor-green:#22c55e; --bg:#0d1117; }
-        *{box-sizing:border-box; font-family:'Cairo', sans-serif; margin:0; padding:0}
-        body{background:var(--bg); color:#fff; display:flex; height:100vh; overflow:hidden}
+<meta charset="UTF-8">
+<title>Motivity Master AI - المساحات الخارجية 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{
+  --motivity-red:#e60012;
+  --tech-blue:#38bdf8;
+  --sub-yellow:#e5c07b;
+  --monitor-green:#22c55e;
+  --bg:#0d1117;
+}
+*{box-sizing:border-box; font-family:'Cairo', sans-serif; margin:0; padding:0}
+body{background:var(--bg); color:#fff; display:flex; height:100vh; overflow:hidden}
 
-        .sidebar{width:450px; background:#161b22; padding:20px; overflow-y:auto; border-left:4px solid var(--motivity-red); flex-shrink:0}
-        .box{background:#21262d; padding:15px; border-radius:10px; margin-bottom:12px; border:1px solid #30363d}
-        h3{font-size:13px; color:var(--tech-blue); border-bottom:1px solid #444; padding-bottom:5px; margin-bottom:10px; text-transform: uppercase;}
-        label{font-size:11px; color:#8b949e; display:block; margin-top:8px}
-        input, select{width:100%; padding:8px; background:#0d1117; color:#fff; border:1px solid #30363d; border-radius:6px; margin-top:4px}
+.sidebar{width:450px; background:#161b22; padding:20px; overflow-y:auto; border-left:4px solid var(--motivity-red); flex-shrink:0}
+.box{background:#21262d; padding:15px; border-radius:10px; margin-bottom:12px; border:1px solid #30363d}
+h3{font-size:14px; color:var(--tech-blue); margin-bottom:8px; border-bottom:1px solid #444; padding-bottom:5px; text-transform:uppercase}
+label{font-size:12px; color:#8b949e; display:block; margin-top:8px}
+input, select{width:100%; padding:8px; background:#0d1117; color:#fff; border:1px solid #30363d; border-radius:6px; margin-top:4px; font-size:12px}
 
-        .main-view{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000}
-        canvas{background:#050505; border:2px solid #333; border-radius:12px; width:95%; max-height:75vh}
+.btn-smart { background: linear-gradient(135deg, var(--motivity-red), #99000d); color:#fff; font-weight:900; padding:15px; border:none; border-radius:8px; cursor:pointer; width:100%; margin-bottom:10px; transition:0.3s}
+.btn-reset { background: #30363d; color: #f85149; border: 1px solid #f85149; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 10px;}
+.btn-save { background: #22c55e; color:#000; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; margin-bottom:10px;}
+.btn-pdf { background: #38bdf8; color:#000; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold; width:100%; margin-bottom:10px;}
+.tool-btn { background:#0d1117; color:#fff; border:1px solid #444; padding:8px; font-size:11px; cursor:pointer; border-radius:6px; width:48%; margin-top:5px}
+.tool-btn.active { background:var(--tech-blue); color:#000; font-weight:bold}
 
-        .btn-group{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px}
-        button{padding:12px; border:none; border-radius:8px; cursor:pointer; font-weight:700; transition:0.3s; font-size: 13px;}
-        .btn-smart{background:var(--tech-blue); color:#000}
-        .btn-report{background:var(--motivity-red); color:#fff}
-        .btn-reset{background:#333; color:#ff4d4d; border:1px solid #444; grid-column: span 2;}
+.main-view { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; position:relative}
+canvas { background:#050505; border:2px solid #333; border-radius:12px; width:95%; max-height:75vh; cursor:crosshair}
 
-        #reportPage{display:none; position:fixed; inset:0; background:#fff; z-index:9999; color:#333; overflow-y:auto; padding:40px}
-        .report-content{max-width:1000px; margin:auto; padding:30px; border:1px solid #ddd; background:#fff; text-align: right;}
-        .reasoning-box{background:#f0f7ff; border-right:8px solid var(--motivity-red); padding:20px; margin:20px 0; line-height:1.7}
-        
-        .status-pass { color: var(--monitor-green); font-weight: bold; border-right: 5px solid var(--monitor-green); padding-right: 10px; }
-        .status-fail { color: var(--motivity-red); font-weight: bold; border-right: 5px solid var(--motivity-red); padding-right: 10px; }
+.beam-controls { position:absolute; bottom:20px; background:rgba(22, 27, 34, 0.95); padding:15px; border-radius:15px; border:1px solid var(--tech-blue); width:85%; display:flex; gap:20px; align-items:center}
 
-        table{width:100%; border-collapse:collapse; margin:20px 0}
-        th, td{border:1px solid #ddd; padding:12px; text-align:right}
-        th{background:#f4f4f4; font-weight:900}
-        
-        @media print { .no-print { display: none !important; } #reportPage { position: static; display: block; } }
-    </style>
+#reportPage { display:none; position:fixed; inset:0; background:#fff; z-index:9999; color:#333; overflow-y:auto; padding:40px}
+.report-content { max-width:1200px; margin:auto; border:2px solid #ddd; padding:30px; border-top: 20px solid var(--motivity-red); background:#fff;}
+.analysis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+.analysis-card { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; text-align: center; }
+.analysis-card h4 { color: var(--motivity-red); font-size: 14px; margin-bottom: 5px; }
+table { width:100%; border-collapse:collapse; margin:20px 0}
+th, td { border:1px solid #ddd; padding:12px; text-align:right}
+th { background: #f4f4f4; color: #333; font-weight: 900; }
+@media print { .no-print { display: none !important; } }
+</style>
 </head>
 <body>
 
 <div class="sidebar no-print">
-    <h2 style="color:var(--motivity-red); text-align:center; margin-bottom:15px; font-weight:900;">MOTIVITY MASTER AI</h2>
+<h2 style="color:var(--motivity-red); text-align:center; font-weight:900">MOTIVITY MASTER AI - Outdoor</h2>
 
-    <div class="box">
-        <h3>📏 هندسة الموقع والجمهور</h3>
-        <div style="display:flex; gap:10px">
-            <div><label>طول الساحة (م)</label><input type="number" id="l" value="120" oninput="draw()"></div>
-            <div><label>عرض الساحة (م)</label><input type="number" id="w" value="70" oninput="draw()"></div>
-        </div>
-        <div style="display:flex; gap:10px">
-            <div><label>عرض المسرح (م)</label><input type="number" id="sw" value="25" oninput="draw()"></div>
-            <div><label>عمق المسرح (م)</label><input type="number" id="sd" value="12" oninput="draw()"></div>
-        </div>
-        <label>الجمهور المتوقع</label>
-        <input type="number" id="crowd" value="5000" oninput="draw()">
-    </div>
+<div class="box">
+<h3>📏 إعدادات المساحة الخارجية</h3>
+<div style="display:flex; gap:10px">
+<div><label>الطول (متر)</label><input type="number" id="out_l" value="120" oninput="draw()"></div>
+<div><label>العرض (متر)</label><input type="number" id="out_w" value="70" oninput="draw()"></div>
+</div>
+<div style="display:flex; gap:10px">
+<div><label>عرض المسرح (متر)</label><input type="number" id="stage_w" value="25" oninput="draw()"></div>
+<div><label>عمق المسرح (متر)</label><input type="number" id="stage_d" value="12" oninput="draw()"></div>
+</div>
+<div><label>نوع الأرضية</label>
+<select id="floor_type" onchange="draw()">
+<option value="grass">عشب طبيعي</option>
+<option value="concrete">خرسانة</option>
+<option value="asphalt">أسفلت</option>
+</select>
+</div>
+<div><label>عدد الجمهور المتوقع</label><input type="number" id="crowd" value="5000" oninput="draw()"></div>
+</div>
 
-    <div class="box">
-        <h3>🔊 النظام الرئيسي والصب</h3>
-        <label>نظام الـ Line Array</label>
-        <select id="main_pa" onchange="draw()"></select>
-        <input type="number" id="main_qty" value="16" oninput="draw()">
+<div class="box">
+<h3>🔊 الكتالوج الكامل المعتمد 2026</h3>
+<label>1. الأنظمة الرئيسية والجانبية</label>
+<select id="sel_main">
+<optgroup label="Point Source">
+<option value="DB-25 NW" data-spl="133" data-h="100" data-v="70">DB-25 NW (1000W / 133dB)</option>
+<option value="DB-25 3G" data-spl="130" data-h="100" data-v="60">DB-25 3G (1000W / 130dB)</option>
+<option value="MTL-700 3G" data-spl="126" data-h="90" data-v="60">MTL-700 3G (500W)</option>
+</optgroup>
+<optgroup label="Line Array Series">
+<option value="MLA212" data-spl="138" data-h="90" data-v="10">MLA212 (Dual 12" - 900W)</option>
+<option value="MLA210" data-spl="135" data-h="90" data-v="10">MLA210 (Dual 10" - 700W)</option>
+<option value="M10-LA" data-spl="132" data-h="100" data-v="10">M10-LA (Compact 700W)</option>
+<option value="MLA208" data-spl="130" data-h="100" data-v="10">MLA208 (Dual 8")</option>
+</optgroup>
+<optgroup label="Active Series">
+<option value="HD315A" data-spl="131" data-h="90" data-v="60">HD315A (1000W Active)</option>
+<option value="HD312A" data-spl="128" data-h="90" data-v="60">HD312A (1000W Active)</option>
+</optgroup>
+</select>
 
-        <label>نظام الصب-ووفر</label>
-        <select id="sub_pa" onchange="draw()"></select>
-        <input type="number" id="sub_qty" value="12" oninput="draw()">
+<label>2. الترددات والملحقات</label>
+<select id="sel_extra">
+<option value="DB-218 3G">DB-218 3G (Dual 18" - 1400W)</option>
+<option value="QX-218">QX-218 (Dual 18" Touring)</option>
+<option value="HD-SUB-18A">HD-SUB-18A (Active Sub)</option>
+<option value="DB-15M 3G">DB-15M 3G (Stage Monitor)</option>
+<option value="MTL-152">MTL-152 (KTV/Monitor)</option>
+</select>
 
-        <label>توزيع الصب-ووفر</label>
-        <select id="sub_pos" onchange="draw()">
-            <option value="sides">توزيع جانبي (LR Stack)</option>
-            <option value="front">توزيع أمامي (Electronic Arc)</option>
-        </select>
-    </div>
+<div style="display:flex; justify-content:space-between; margin-top:10px">
+<button class="tool-btn active" id="btn_main" onclick="setMode('main')">إضافة رئيسية</button>
+<button class="tool-btn" id="btn_sub" onclick="setMode('sub')">إضافة صب/مونيتور</button>
+</div>
+</div>
 
-    <div class="box">
-        <h3>🛰️ أنظمة الملء والتأخير (Fills)</h3>
-        <label>Out-Fills (15m)</label>
-        <select id="s1_pa" onchange="draw()"></select>
-        <input type="number" id="s1_qty" value="4" oninput="draw()">
+<button class="btn-smart" onclick="applySmartLayout()">🚀 توزيع ذكي تلقائي</button>
+<button class="btn-smart" style="background:var(--tech-blue); color:#000" onclick="generateReport()">📄 توليد التقرير الهندسي</button>
+<button class="btn-pdf" onclick="savePDFReport()">📥 حفظ التقرير PDF</button>
+<button class="btn-save" onclick="saveReport()">🖼️ حفظ التقرير صورة PNG</button>
+<button class="btn-reset" onclick="resetCanvas()">🔄 إعادة ضبط الشاشة</button>
 
-        <label>Side-Fills (40m)</label>
-        <select id="s2_pa" onchange="draw()"></select>
-        <input type="number" id="s2_qty" value="4" oninput="draw()">
-
-        <label>أبراج التأخير (65m+)</label>
-        <select id="d_pa" onchange="draw()"></select>
-        <input type="number" id="d_qty" value="6" oninput="draw()">
-    </div>
-
-    <div class="box">
-        <h3>🎛️ المعالجة والمونيتور</h3>
-        <label>سماعات المونيتور</label>
-        <select id="mon_pa" onchange="draw()"></select>
-        <input type="number" id="mon_qty" value="8" oninput="draw()">
-
-        <label>نوع المكبرات (Amplifiers)</label>
-        <select id="amp_unit"></select>
-
-        <label>المعالج الرقمي (DSP)</label>
-        <select id="dsp_unit"></select>
-    </div>
-
-    <div class="btn-group">
-        <button class="btn-smart" onclick="applySmart()">✨ تصميم ذكي AI</button>
-        <button class="btn-report" onclick="openReport()">📄 تقرير BOQ الفني</button>
-        <button class="btn-reset" onclick="location.reload()">🔄 إعادة ضبط</button>
-    </div>
 </div>
 
 <div class="main-view no-print">
-    <canvas id="stageCanvas"></canvas>
-    <div style="font-size:11px; color:#555; margin-top:10px;">
-        🔵 رئيسي | ⚪ صب | 🟢 مونيتور | 🟡 Out-fill | 🟠 Side-fill | 🟣 Delay
-    </div>
+<canvas id="mainCanvas"></canvas>
+<div class="beam-controls">
+<div style="flex:1">
+<label style="color:var(--tech-blue); margin:0">توجيه التغطية</label>
+<input type="range" id="beam_angle" min="0" max="360" value="90" oninput="updateSelected()">
+</div>
+<div style="flex:1">
+<label style="color:var(--tech-blue); margin:0">المدى الفعلي</label>
+<input type="range" id="beam_range" min="50" max="850" value="400" oninput="updateSelected()">
+</div>
+<div id="sel_name" style="font-weight:bold; font-size:12px; width:130px; color:var(--motivity-red)">-- اختر منتجاً --</div>
+</div>
 </div>
 
 <div id="reportPage">
-    <div class="report-content">
-        <div class="no-print" style="margin-bottom:20px;">
-            <button onclick="document.getElementById('reportPage').style.display='none'">🔙 العودة للمحرر</button>
-            <button onclick="window.print()">🖨️ طباعة التقرير PDF</button>
-        </div>
-        <h1 style="color:var(--motivity-red); border-bottom:4px solid red; padding-bottom:10px">التحليل الهندسي المعتمد - MOTIVITY AUDIO</h1>
-        
-        <div id="verdictBox" class="reasoning-box"></div>
-        <div id="smartReasoning" class="reasoning-box"></div>
-        
-        <table id="boqTable"></table>
-        <h3>مخطط التوزيع الصوتي (Stage View):</h3>
-        <img id="reportImg" style="width:100%; border:1px solid #333; margin-top:10px;">
-    </div>
+<div class="report-content" id="report-to-pdf">
+<button onclick="document.getElementById('reportPage').style.display='none'" class="no-print" style="padding:5px 15px; cursor:pointer; margin-bottom:10px">❌ إغلاق المعاينة</button>
+<h1 style="color:var(--motivity-red); text-align:center; font-weight:900">تقرير التحليل الصوتي الهندسي - المساحات الخارجية 2026</h1>
+<div class="analysis-grid">
+<div class="analysis-card"><h4>🔊 ضغط الصوت (SPL Max)</h4><p id="rep_spl_val">-- dB</p></div>
+<div class="analysis-card"><h4>⏳ زمن التأخير (Delay)</h4><p id="rep_delay_val">-- ms</p></div>
+<div class="analysis-card"><h4>📐 زاوية الانتشار (H/V)</h4><p id="rep_angle_val">-- / --</p></div>
+</div>
+<div id="boqSection"></div>
+<h3 style="border-bottom: 2px solid #eee; margin-top: 20px;">🗺️ خريطة المحاكاة الصوتية</h3>
+<img id="reportImg" style="width:100%; background:#050505; border-radius:15px; margin-top:15px">
+</div>
 </div>
 
 <script>
-    const CATALOG = {
-        "MLA212": { rms: 900, spl: 134 }, "MLA210": { rms: 700, spl: 137 },
-        "MLHP312D": { rms: 900, spl: 134 }, "M10-LA": { rms: 700, spl: 136 },
-        "T-24": { rms: 800, spl: 136 }, "MTL-152": { rms: 600, spl: 128 },
-        "MTL-700 3G": { rms: 500, spl: 124 },
-        "DB-218 3G": { rms: 1400, spl: 136 }, "QX-218": { rms: 1400, spl: 135 },
-        "MCC828SD": { rms: 1600, spl: 136 }, "B-30": { rms: 1200, spl: 135 }, "AT-18B": { rms: 800, spl: 130 },
-        "DB-25 3G": { rms: 1000, spl: 133 }, "DB-25 NW": { rms: 1000, spl: 133 },
-        "HD315A": { rms: 1000, spl: 133 }, "HD312A": { rms: 1000, spl: 131 },
-        "AT-15": { rms: 500, spl: 127 }, "AT-12": { rms: 450, spl: 125 }, "AT-10": { rms: 350, spl: 123 },
-        "DB-15M 3G": { rms: 500, spl: 124 },
-        "MA-1500": { spec: "2x1500W @ 8Ω" }, "MA-1000": { spec: "2x1000W @ 8Ω" },
-        "MA-800": { spec: "2x800W @ 8Ω" }, "D11.4": { spec: "4x1100W Digital" },
-        "DP48": { spec: "4 In / 8 Out DSP" }
+const canvas=document.getElementById('mainCanvas');
+const ctx=canvas.getContext('2d');
+let points=[],currentMode='main',selectedPoint=null;
+
+function setMode(m){currentMode=m;document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));document.getElementById('btn_'+m).classList.add('active');}
+function resetCanvas(){points=[]; selectedPoint=null; document.getElementById('sel_name').innerText="-- اختر منتجاً --"; draw();}
+function updateSelected(){if(selectedPoint){selectedPoint.angle=parseInt(document.getElementById('beam_angle').value);selectedPoint.range=parseInt(document.getElementById('beam_range').value); draw();}}
+
+function applySmartLayout(){
+points=[];
+const L=+out_l.value, W=+out_w.value, sW=+stage_w.value, sD=+stage_d.value;
+const scale=Math.min(1100/L,600/W)*0.8;
+const oX=(1100-L*scale)/2,oY=(600-W*scale)/2;
+const stX=oX+(L*scale-sW*scale)/2;
+const profile={type:"concert", load:L>60?"heavy":"medium"};
+
+const elementsPerSide=Math.max(4, Math.ceil(L/10)); const finalElements=elementsPerSide%2===0?elementsPerSide:elementsPerSide+1;
+points.push({x:stX-30,y:oY+(sD*scale/2),type:'main',name:'لاين أراي يسار',angle:90+10,range:L*scale*0.9,spl:138,hAngle:90,vAngle:10,isLineArray:true,elements:finalElements/2});
+points.push({x:stX+(sW*scale)+30,y:oY+(sD*scale/2),type:'main',name:'لاين أراي يمين',angle:90-10,range:L*scale*0.9,spl:138,hAngle:90,vAngle:10,isLineArray:true,elements:finalElements/2});
+
+const subCount=profile.load==="heavy"?6:4;
+for(let i=0;i<subCount;i++){points.push({x:stX+(sW*scale/(subCount-1))*i,y:oY+(sD*scale)+25,type:'sub',name:'مضخم صوت (Subwoofer)',angle:90,range:200});}
+
+// Side Fills - توزيع متقابل (يمين ويسار)
+const sideCountPerSide = profile.load === "heavy" ? 3 : 2; // عدد السماعات لكل جانب
+for (let i = 0; i < sideCountPerSide; i++) {
+    const yPos = oY + (W * scale / (sideCountPerSide + 1)) * (i + 1);
+    
+    // سماعات الجدار الأيسر (توجيه لليمين بزاوية 0)
+    points.push({
+        x: oX + 15, 
+        y: yPos, 
+        type: 'side', 
+        name: 'سماعة جانبية (يسار)', 
+        angle: 0, 
+        range: (W * scale) * 0.4, // تغطية حتى منتصف العرض تقريباً
+        hAngle: 90
+    });
+
+    // سماعات الجدار الأيمن (توجيه لليسار بزاوية 180)
+    points.push({
+        x: oX + (L * scale) - 15, 
+        y: yPos, 
+        type: 'side', 
+        name: 'سماعة جانبية (يمين)', 
+        angle: 180, 
+        range: (W * scale) * 0.4, 
+        hAngle: 90
+    });
+}
+
+let monitorCount=sW>16?8:(sW>10?6:4);
+for(let i=0;i<monitorCount;i++){points.push({x:stX+(sW*scale/(monitorCount-1))*i,y:oY+(sD*scale)-10,type:'sub',name:'مونيتور مسرح',angle:270,range:120});}
+draw();
+}
+
+function draw(){
+const L=+out_l.value, W=+out_w.value, sW=+stage_w.value, sD=+stage_d.value;
+canvas.width=1100; canvas.height=600;
+const scale=Math.min(canvas.width/L,canvas.height/W)*0.8;
+const oX=(canvas.width-L*scale)/2,oY=(canvas.height-W*scale)/2;
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+const floor=document.getElementById('floor_type').value;
+ctx.fillStyle=floor==="grass"?"#145214":floor==="concrete"?"#555":"#333";
+ctx.fillRect(oX,oY,L*scale,W*scale);
+ctx.strokeStyle="#333"; ctx.lineWidth=4; ctx.strokeRect(oX,oY,L*scale,W*scale);
+
+const stX=oX+(L*scale-sW*scale)/2;
+ctx.fillStyle="rgba(230,0,18,0.1)"; ctx.fillRect(stX,oY,sW*scale,sD*scale);
+ctx.strokeStyle="#e60012"; ctx.strokeRect(stX,oY,sW*scale,sD*scale);
+
+points.forEach(p=>{
+const angleRad=p.angle*(Math.PI/180);
+const spread=(p.hAngle||100)*(Math.PI/180);
+const grad=ctx.createRadialGradient(p.x,p.y,5,p.x,p.y,p.range);
+if(p.type==='main'){grad.addColorStop(0,'rgba(56,189,248,0.6)');grad.addColorStop(1,'rgba(56,189,248,0.05)');}
+else if(p.name.includes("Sub")){grad.addColorStop(0,'rgba(229,192,123,0.6)');grad.addColorStop(1,'transparent');}
+else{grad.addColorStop(0,'rgba(34,197,94,0.6)');grad.addColorStop(1,'transparent');}
+ctx.fillStyle=grad;
+ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.arc(p.x,p.y,p.range,angleRad-spread/2,angleRad+spread/2); ctx.closePath(); ctx.fill();
+if(p.isLineArray) drawLineArrayStack(p); else drawRegularSpeaker(p);
+});
+}
+
+function drawRegularSpeaker(p){
+ctx.beginPath(); ctx.arc(p.x,p.y,8,0,Math.PI*2);
+ctx.fillStyle=(p===selectedPoint)?"#fff":(p.type==='main'?'#38bdf8':p.name.includes("Sub")?'#e5c07b':'#22c55e');
+ctx.fill(); ctx.strokeStyle="#fff"; ctx.stroke();
+ctx.fillStyle="#fff"; ctx.font="bold 10px Cairo"; ctx.fillText(p.name,p.x+12,p.y+3);
+}
+
+function drawLineArrayStack(p){
+const unitWidth=10, unitHeight=6, spacing=2;
+const angleRad=p.angle*Math.PI/180;
+ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(angleRad-Math.PI/2);
+for(let i=0;i<p.elements;i++){ctx.fillStyle="rgba(56,189,248,0.9)";ctx.fillRect(-unitWidth/2,-(i*(unitHeight+spacing)),unitWidth,unitHeight);ctx.strokeStyle="#fff";ctx.strokeRect(-unitWidth/2,-(i*(unitHeight+spacing)),unitWidth,unitHeight);}
+ctx.restore(); ctx.fillStyle="#38bdf8"; ctx.font="bold 11px Cairo"; ctx.fillText(`لاين أراي (${p.elements} وحدات)`,p.x+14,p.y-(p.elements*4));
+}
+
+canvas.addEventListener('mousedown',e=>{
+const rect=canvas.getBoundingClientRect();
+const x=(e.clientX-rect.left)*(canvas.width/rect.width);
+const y=(e.clientY-rect.top)*(canvas.height/rect.height);
+const clicked=points.find(p=>Math.hypot(p.x-x,p.y-y)<15);
+if(clicked){selectedPoint=clicked; document.getElementById('sel_name').innerText=selectedPoint.name; document.getElementById('beam_angle').value=selectedPoint.angle; document.getElementById('beam_range').value=selectedPoint.range;}
+else{
+const sel=document.getElementById(currentMode==='main'?'sel_main':'sel_extra');
+const opt=sel.options[sel.selectedIndex];
+points.push({x,y,type:currentMode,name:sel.value,angle:90,range:400,spl:opt.dataset.spl||120,hAngle:opt.dataset.h||100,vAngle:opt.dataset.v||70});
+selectedPoint=points[points.length-1];
+document.getElementById('beam_angle').value=90;
+document.getElementById('beam_range').value=400;
+}
+draw();
+});
+
+function buildEngineeringDecision(){
+const L=+out_l.value,W=+out_w.value,sW=+stage_w.value,crowd=+document.getElementById('crowd').value;
+const hasLineArray=points.some(p=>p.isLineArray);
+const mainCount=points.filter(p=>p.type==='main').length;
+const subCount=points.filter(p=>p.type==='sub'&&p.name.includes("Sub")).length;
+const monitorCount=points.filter(p=>p.name.includes("Monitor")||p.name.includes("مونيتور")).length;
+return{
+eventText:`تم تصميم النظام لفعالية في مساحة خارجية ${L}م × ${W}م مع جمهور ${crowd} شخص.`,
+systemText:hasLineArray?"تم اختيار نظام مصفوفة خطية (Line Array) لتغطية المساحات الكبيرة بشكل متوازن.":"تم اختيار نظام (Point Source) لتوزيع الصوت في المناطق المفتوحة.",
+quantityText:hasLineArray?`تم نشر ${mainCount} مجموعات لاين أراي لتغطية مسافات بعيدة.`:`تم توزيع ${mainCount} سماعات كاملة المدى.`,
+subText:`تم توزيع ${subCount} مضخمات صوت (Subwoofers) لتغطية الترددات المنخفضة.`,
+monitorText:`تم تخصيص ${monitorCount} سماعات مونيتور للمسرح.`,
+alternativeText:hasLineArray?"يمكن استخدام Point Source كخيار بديل مع تأخير المناطق الخلفية.":"يمكن استخدام Line Array كخيار بديل لتقليل عدد السماعات مع تحسين الضغط الصوتي."
+};
+}
+
+function generateReport(){
+const decision=buildEngineeringDecision();
+const counts={}; points.forEach(p=>counts[p.name]=(counts[p.name]||0)+1);
+document.getElementById('boqSection').innerHTML=`
+<div style="background:#f0f7ff; padding:15px; border-radius:10px; margin-bottom:20px; border-right:5px solid var(--tech-blue)">
+<h3>📘 تقرير القرار الهندسي</h3>
+<p>${decision.eventText}</p>
+<p><b>بنية النظام:</b> ${decision.systemText}</p>
+<p><b>تبرير الكميات:</b> ${decision.quantityText}</p>
+<p><b>تصميم الترددات المنخفضة:</b> ${decision.subText}</p>
+<p><b>مراقبة المسرح:</b> ${decision.monitorText}</p>
+<p><b>السيناريو البديل:</b> ${decision.alternativeText}</p>
+</div>
+<h3>📦 قائمة الكميات والمواصفات (BOQ)</h3>
+<table><tr><th>المنتج</th><th>الكمية</th></tr>`+
+Object.entries(counts).map(([n,c])=>`<tr><td><b>${n}</b></td><td>${c} وحدات</td></tr>`).join('')+
+`</table>`;
+document.getElementById('reportImg').src=canvas.toDataURL();
+document.getElementById('reportPage').style.display='block';
+}
+
+function saveReport(){
+    const link = document.createElement('a');
+    link.href = document.getElementById('reportImg').src;
+    link.download = 'Motivity_Report_Outdoor_Map.png';
+    link.click();
+}
+
+function savePDFReport(){
+    // توليد التقرير أولاً للتأكد من وجود البيانات
+    generateReport();
+    
+    const element = document.getElementById('report-to-pdf');
+    const opt = {
+        margin: 10,
+        filename: 'Motivity_Engineering_Report_2026.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
+    
+    // إخفاء زر الإغلاق من PDF
+    const closeBtn = element.querySelector('.no-print');
+    if(closeBtn) closeBtn.style.display = 'none';
 
-    function fillSelectors() {
-        const specs = {
-            main_pa: ["MLA212", "MLA210", "MLHP312D", "M10-LA", "T-24"],
-            sub_pa: ["DB-218 3G", "QX-218", "MCC828SD", "B-30", "AT-18B"],
-            s1_pa: ["DB-25 3G", "DB-25 NW", "HD315A", "AT-15"],
-            s2_pa: ["MTL-152", "MTL-700 3G", "HD312A", "AT-12"],
-            d_pa: ["AT-12", "AT-10", "MTL-700 3G"],
-            mon_pa: ["DB-15M 3G", "AT-12", "AT-10"],
-            amp_unit: ["MA-1500", "MA-1000", "MA-800", "D11.4"],
-            dsp_unit: ["DP48"]
-        };
-        for(let id in specs) {
-            const el = document.getElementById(id);
-            el.innerHTML = "";
-            specs[id].forEach(m => el.add(new Option(m, m)));
-        }
-    }
+    html2pdf().set(opt).from(element).save().then(() => {
+        if(closeBtn) closeBtn.style.display = 'block';
+    });
+}
 
-    const canvas = document.getElementById('stageCanvas');
-    const ctx = canvas.getContext('2d');
-
-    function draw() {
-        const L = parseFloat(document.getElementById('l').value) || 100;
-        const W = parseFloat(document.getElementById('w').value) || 70;
-        const sw = parseFloat(document.getElementById('sw').value) || 20;
-        const sd = parseFloat(document.getElementById('sd').value) || 10;
-        const monQty = parseInt(document.getElementById('mon_qty').value) || 0;
-        const subPos = document.getElementById('sub_pos').value;
-        const subQty = parseInt(document.getElementById('sub_qty').value) || 0;
-
-        canvas.width = 1200; canvas.height = 800;
-        const scale = Math.min(canvas.width/L, canvas.height/W) * 0.8;
-        const oX = (canvas.width - L*scale)/2;
-        const oY = (canvas.height - W*scale)/2;
-
-        ctx.clearRect(0,0,1200,800);
-        ctx.fillStyle = "#0a0a0a"; ctx.fillRect(oX, oY, L*scale, W*scale);
-
-        const sW = sw * scale; const sD = sd * scale;
-        const sX = oX + (L*scale - sW)/2;
-        ctx.fillStyle = "#161b22"; ctx.fillRect(sX, oY, sW, sD);
-        ctx.strokeStyle = "#e60012"; ctx.strokeRect(sX, oY, sW, sD);
-
-        // مونيتور (أخضر)
-        ctx.fillStyle = "#22c55e";
-        const mSpc = sW / (monQty + 1);
-        for(let i=1; i<=monQty; i++) {
-            ctx.beginPath(); ctx.moveTo(sX + i*mSpc - 8, oY + sD - 5);
-            ctx.lineTo(sX + i*mSpc + 8, oY + sD - 5); ctx.lineTo(sX + i*mSpc, oY + sD - 18);
-            ctx.fill();
-        }
-
-        // FOH (أزرق)
-        ctx.fillStyle = "#38bdf8"; ctx.fillRect(sX-30, oY, 20, 60); ctx.fillRect(sX+sW+10, oY, 20, 60);
-
-        // صب (أبيض)
-        ctx.fillStyle = "#fff";
-        if(subPos === "sides") {
-            for(let i=0; i<subQty/2; i++) { ctx.fillRect(sX-60, oY + i*20, 20, 15); ctx.fillRect(sX+sW+40, oY + i*20, 20, 15); }
-        } else {
-            const spc = sW / subQty; for(let i=0; i<subQty; i++) ctx.fillRect(sX + i*spc, oY+sD+5, 18, 12);
-        }
-
-        const dEx = (dist, qty, col) => {
-            const py = oY + (dist * scale);
-            ctx.fillStyle = col;
-            for(let i=0; i<qty/2; i++) { ctx.fillRect(oX+15, py+i*25, 15, 15); ctx.fillRect(oX+L*scale-30, py+i*25, 15, 15); }
-        };
-        dEx(15, document.getElementById('s1_qty').value, "#facc15"); // Out-fills
-        dEx(40, document.getElementById('s2_qty').value, "#f59e0b"); // Side-fills
-        
-        // Delay (بنفسجي)
-        const dq = parseInt(document.getElementById('d_qty').value);
-        ctx.fillStyle = "#a855f7";
-        for(let i=1; i<=dq; i++) ctx.fillRect(oX + (L*scale/(dq+1))*i, oY+(65*scale), 15, 15);
-    }
-
-    function applySmart() {
-        const cr = parseInt(document.getElementById('crowd').value) || 1000;
-        document.getElementById('main_qty').value = Math.max(12, Math.ceil(cr / 400));
-        document.getElementById('sub_qty').value = Math.max(8, Math.ceil(document.getElementById('main_qty').value * 0.8));
-        draw();
-    }
-
-    function openReport() {
-        const L = parseFloat(document.getElementById('l').value);
-        const cr = parseInt(document.getElementById('crowd').value);
-        const mq = document.getElementById('main_pa').value;
-        const mqty = parseInt(document.getElementById('main_qty').value);
-        const dq = parseInt(document.getElementById('d_qty').value);
-
-        const baseSpl = CATALOG[mq].spl;
-        const splAtBack = (baseSpl + (10 * Math.log10(mqty))) - (20 * Math.log10(L));
-
-        let verdict = "";
-        if(splAtBack < 96 && dq < 4) {
-            verdict = `<h2 class="status-fail">⚠️ تحذير هندسي: كفاءة النظام منخفضة</h2>
-                      <p>مستوى الصوت عند ${L}م هو ${splAtBack.toFixed(1)}dB. ينصح بزيادة عدد سماعات الـ Main أو إضافة أبراج تأخير (Delay Towers).</p>`;
-        } else {
-            verdict = `<h2 class="status-pass">✅ النظام معتمد هندسياً</h2>
-                      <p>التغطية الصوتية مناسبة لـ ${cr} شخص على امتداد ${L} متر.</p>`;
-        }
-        document.getElementById('verdictBox').innerHTML = verdict;
-
-        let totalRMS = 0;
-        let html = "<tr><th>الفئة</th><th>الموديل</th><th>الكمية</th><th>المواصفات</th></tr>";
-        const keys = [["النظام الرئيسي", "main_pa", "main_qty"], ["الصب-ووفر", "sub_pa", "sub_qty"], ["Out-Fills", "s1_pa", "s1_qty"], ["Side-Fills", "s2_pa", "s2_qty"], ["أبراج التأخير", "d_pa", "d_qty"], ["المونيتور", "mon_pa", "mon_qty"]];
-        
-        keys.forEach(k => {
-            const m = document.getElementById(k[1]).value;
-            const q = parseInt(document.getElementById(k[2]).value);
-            totalRMS += (CATALOG[m].rms * q);
-            html += `<tr><td>${k[0]}</td><td>${m}</td><td>${q}</td><td>${CATALOG[m].rms}W RMS</td></tr>`;
-        });
-
-        document.getElementById('smartReasoning').innerHTML = `<h3>📝 التحليل والقدرة:</h3>
-            <p>• إجمالي الطاقة المطلوبة: <strong>${totalRMS.toLocaleString()} واط RMS</strong>.</p>
-            <p>• المولد المقترح: <strong>${((totalRMS*1.6)/1000).toFixed(1)} kVA</strong>.</p>`;
-
-        document.getElementById('boqTable').innerHTML = html;
-        document.getElementById('reportImg').src = canvas.toDataURL();
-        document.getElementById('reportPage').style.display = 'block';
-    }
-
-    window.onload = () => { fillSelectors(); draw(); };
+window.onload=draw;
 </script>
+
 </body>
 </html>
